@@ -1,0 +1,40 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Robo Rally Game</title>
+    <meta name="description" content="Robo Rally Game">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <header>
+        <h1>RoboRally</h1>
+        <div class="gameInfo hidden">
+            <p>
+                Go to robo-rally.glitch.me/g/<span class="code"></span> to join this game.
+                <span class="qrcode"></span>
+            </p>
+        </div>
+    </header>
+    <main>
+        <h2 class="statusText">Waiting for players to join...</h2>
+        <ul class="playersList"></ul>
+        <div class="toolbar">
+            <button class="startGame">Start game</button>
+        </div>
+        <div id="gameContainer"></div>
+    </main>
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"
+            integrity="sha256-gvQgAFzTH6trSrAWoH1iPo9Xc96QxSZ3feW6kem+O00="
+            crossorigin="anonymous"></script>
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/phaser/2.6.2/phaser.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/main.js"></script>
+    <script src="/qrcode.min.js"></script>
+    <script>
+        initRoboRally();
+    </script>
+</body>
+</html>

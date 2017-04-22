@@ -1,15 +1,8 @@
-﻿<!-- This is a static file -->
-<!-- served from your routes in server.js -->
-<!-- You might want to try something fancier: -->
-<!-- html/nunjucks docs: https://mozilla.github.io/nunjucks/ -->
-<!-- pug: https://pugjs.org/ -->
-<!-- haml: http://haml.info/ -->
-<!-- hbs(handlebars): http://handlebarsjs.com/ -->
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
-    <title>Hey, it's a tilemap!</title>
-    <meta name="description" content="A cool thing made with Glitch">
+    <title>Robo Rally</title>
+    <meta name="description" content="Robo Rally">
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -17,73 +10,24 @@
 </head>
 <body>
     <header>
-        <h1>
-            RoboRally
-        </h1>
-        <div class="gameInfo hidden">
-            <p>
-                Go to robo-rally.glitch.me/g/<span class="code"></span> to join this game.
-                <span class="qrcode"></span>
-            </p>
-        </div>
+        <h1>RoboRally</h1>
     </header>
     <main>
         <div class="toolbar">
             <button class="createGame">Create new game</button>
         </div>
-        <div id="gameContainer"></div>
     </main>
-    <!-- Your web-app is https, so your scripts need to be too -->
     <script src="https://code.jquery.com/jquery-2.2.1.min.js"
             integrity="sha256-gvQgAFzTH6trSrAWoH1iPo9Xc96QxSZ3feW6kem+O00="
             crossorigin="anonymous"></script>
-    <script async src="https://cdnjs.cloudflare.com/ajax/libs/phaser/2.6.2/phaser.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
     <script src="/main.js"></script>
-    <!--<script src="https://cdn.glitch.com/389dcdd1-6e4d-4bcb-aedc-9d688fb06c3f%2Finstascan.min.js?1492303102529"></script> <!-- QR code reader. Uses camera. Only works in some browsers. Seems buggy. -->
-    <script src="/qrcode.min.js"></script>
     <script>
-        var gameId = (location.pathname.match(/^\/g\/(\w+)/) || [0, null])[1];
-        var gameData = { id: gameId };
-        io();
-
-        $(window).load(function () {
-            if (gameId === null)
-                createNewGame();
-            else if (localStorage['Game_' + gameId])
-                gameData = loadGame(gameId);
-            else
-                joinGame(gameId);
-        });
-
-        $('.createGame').click(createNewGame);
-
-        function createNewGame() {
-            $.post('create', function (gameId) {
-                gameData.id = gameId;
-                gameData.isHost = true;
-
-                $('.code').text(gameId)
-                $('.gameInfo').show();
-                new QRCode($(".qrcode")[0], { text: "https://robo-rally.glitch.me/g/" + gameId, width: 66, height: 66 });
-                history.pushState(null, '', '/g/' + gameId);
-                localStorage.gameData = JSON.stringify(gameData);
-                startGame();
+        $('.createGame').click(function createNewGame() {
+            $.post('/create', function (gameId) {
+                var clientGame = new ClientGame(gameId);
+                clientGame.setSelfAsHost();
+                location = '/g/' + gameId;
             });
-        }
-
-        function joinGame(id) {
-
-        }
-
-        $(window).on('popstate', function () {
-            if (location.pathname == '/') {
-                $('.toolbar').show();
-                $('.gameInfo').hide();
-                game.destroy();
-            } else if (location.pathname.indexOf('/g/') == 0) {
-                // TODO: load specified game
-            }
         });
     </script>
 </body>

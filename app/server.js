@@ -27,8 +27,11 @@ app.post("/create", function (request, response) {
 });
 
 app.get("/g/:id", function (request, response) {
-    // TODO
-    response.send(games[request.params.id] ? 'That game exists!' : 'That game does not exist.');
+    if (!(request.params.id in games)) {
+        response.send(404, "That game does not exist.");
+    }
+
+    response.sendFile(__dirname + '/views/game.html');
 });
 
 // listen for requests :)
@@ -37,18 +40,15 @@ var listener = server.listen(process.env.PORT, function () {
 });
 
 io.on('connection', function (socket) {
-    socket.on('join', function (data) {
-        socket.join(data.id);
-        socket.gameId = data.id;
+    socket.on('join', function(data) {
+        socket.join(data.gameId);
+        socket.gameId = data.gameId;
 
-        if (data.isHost && !games[data.id].host)
-            games[data.id].host = socket;
-
-        socket.to(data.id).emit('joined', { id: socket.id, name: data.name });
+        socket.to(data.gameId).emit('joined', data.clientId);
     });
 
     // The server should just be a dumb relay. Forward messages to other sockets in the same game.
-    var events = ['submitTurn', 'powerDown', 'useOptionCard', 'gameSettings', 'gameState'];
+    var events = ['broadcastPlayers', 'dealtCards', 'submitTurn', 'powerDown', 'useOptionCard', 'gameSettings', 'gameState'];
     for (let i = 0; i < events.length; i++) {
         socket.on(events[i], function (data) {
             data.sender = socket.id;
