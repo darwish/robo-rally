@@ -30,7 +30,7 @@
     }
 
     private executeAction(robotPhase: RobotPhaseAction) {
-        this.board
+        this.board.runRobotProgram(robotPhase.robot, robotPhase.programCard);
     }
 
     private sortActions(actions: RobotPhaseAction[]) {
