@@ -36,7 +36,7 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
   <ItemGroup>
     <Content Include="app\node_modules\phaser\typescript\typings.json" />
-    <Content Include="app\package.json" />
+    <Content Include="package.json" />
     <Content Include="app\README.md" />
     <Compile Include="app\server.js" />
     <Content Include="app\public\style.css" />
