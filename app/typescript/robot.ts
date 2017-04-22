@@ -1,7 +1,8 @@
 class Robot {
 
     public isPoweredDown: boolean;
-    public optionCards: Array<OptionCard>;
+    public optionCards: OptionCard[];
+    public lockedRegisters: number[];
 
     constructor(public position: BoardPosition, public orientation: Direction, public lives: number, public health?: number) {
         if (health == undefined) {
@@ -10,6 +11,7 @@ class Robot {
 
         this.isPoweredDown = false;
         this.optionCards = [];
+        this.lockedRegisters = []
     }
 
     public isDead() {

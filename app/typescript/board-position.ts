@@ -1,3 +1,3 @@
 class BoardPosition {
-    constructor(public positionX: int, public positionY: int) { }
+    constructor(public positionX: number, public positionY: number) { }
 }
