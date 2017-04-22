@@ -40,7 +40,6 @@
     <Content Include="app\README.md" />
     <Compile Include="app\server.js" />
     <Content Include="app\public\style.css" />
-    <Compile Include="app\public\main.js" />
     <Compile Include="app\public\qrcode.min.js" />
     <Content Include="tsconfig.json">
       <SubType>Code</SubType>
