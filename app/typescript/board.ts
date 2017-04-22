@@ -61,7 +61,7 @@ class Board {
     }
 
     public getAdjacentBoardPosition(fromPosition: BoardPosition, direction: Direction) {
-        switch direction {
+        switch (direction) {
             case Direction.N:
                 return new BoardPosition(fromPosition.x, fromPosition.y + 1);
             case Direction.E:
