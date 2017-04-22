@@ -6,9 +6,9 @@
   "name": "my-glitch-app",
   "version": "0.0.1",
   "description": "What am I about?",
-  "main": "server.js",
+  "main": "app/server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node app/server.js"
   },
   "dependencies": {
     "express": "^4.15.2",

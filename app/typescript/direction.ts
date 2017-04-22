@@ -5,3 +5,21 @@ enum Direction {
     S = 2,
     W = 3
 }
+
+class DirectionUtil {
+    public static getDirection(angleInDegrees) {
+        while (angleInDegrees < 0) {
+            angleInDegrees += 360;
+        }
+
+        return angleInDegrees / 90 % 360;
+    }
+
+    public static opposite(direction) {
+        return direction + 2 % 4;
+    }
+
+    public static getOppositeDirection(direction: Direction) {
+        return (direction + 2) % 4;
+    }
+}

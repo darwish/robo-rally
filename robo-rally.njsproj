@@ -36,7 +36,7 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
   <ItemGroup>
     <Content Include="app\node_modules\phaser\typescript\typings.json" />
-    <Content Include="app\package.json" />
+    <Content Include="package.json" />
     <Content Include="app\README.md" />
     <Compile Include="app\server.js" />
     <Content Include="app\public\style.css" />
@@ -56,6 +56,10 @@
     <Folder Include="app\public" />
     <Folder Include="app\views" />
     <Folder Include="robo-rally" />
+    <Folder Include="typings\" />
+    <Folder Include="typings\jquery\" />
+    <Folder Include="typings\phaser\" />
+    <Folder Include="typings\socket.io-client\" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="app\node_modules\phaser\typescript\p2.d.ts" />
@@ -78,6 +82,7 @@
     <TypeScriptCompile Include="app\typescript\guid.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
+    <TypeScriptCompile Include="app\typescript\flag.ts" />
     <TypeScriptCompile Include="app\typescript\laser.ts" />
     <TypeScriptCompile Include="app\typescript\main.ts" />
     <TypeScriptCompile Include="app\typescript\option-card.ts" />
@@ -87,7 +92,7 @@
     <TypeScriptCompile Include="app\typescript\program-card.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="app\typescript\robot-phase-action.ts" />
+    <TypeScriptCompile Include="app\typescript\robot-phase-movement.ts" />
     <TypeScriptCompile Include="app\typescript\robot-turn.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
@@ -95,6 +100,13 @@
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="app\typescript\turn-logic.ts" />
+    <TypeScriptCompile Include="typings\jquery\jquery.d.ts" />
+    <TypeScriptCompile Include="typings\phaser\box2d.d.ts" />
+    <TypeScriptCompile Include="typings\phaser\p2.d.ts" />
+    <TypeScriptCompile Include="typings\phaser\phaser.comments.d.ts" />
+    <TypeScriptCompile Include="typings\phaser\phaser_box2d.d.ts" />
+    <TypeScriptCompile Include="typings\phaser\pixi.comments.d.ts" />
+    <TypeScriptCompile Include="typings\socket.io-client\socket.io-client.d.ts" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <!--Do not delete the following Import Project.  While this appears to do nothing it is a marker for setting TypeScript properties before our import that depends on them.-->

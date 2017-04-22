@@ -1,10 +1,13 @@
-﻿declare var $: any;
-declare var io: any;
-declare var QRCode: any;
+/// <reference path="../../typings/phaser/phaser.comments.d.ts"/>
+/// <reference path="../../typings/jquery/jquery.d.ts"/>
+/// <reference path="../../typings/socket.io-client/socket.io-client.d.ts"/>
 
-declare var phaserGame: Phaser.Game;
-declare var map: Phaser.Tilemap;
+
+declare var QRCode: any;
 declare var clientGame: ClientGame;
+declare var socket: SocketIOClient.Socket;
+
+var phaserGame: Phaser.Game, map: Phaser.Tilemap;
 
 class Main {
     public globalCardDeck: CardDeck;
@@ -62,7 +65,7 @@ class Main {
     public showWaitingPlayers(clientGame: ClientGame) {
         var list = clientGame.getPlayers().map(function (playerid) {
             return '<li>' + playerid + '</li>';
-        });
+        }).join('');
         $('.playersList').html(list);
     }
 

@@ -1,40 +1,40 @@
 ﻿class TurnLogic {
     readonly numPhases = 5;
 
-    constructor(public board: Board) { }
-
     run(turns: RobotTurn[]) {
         // Execute each phase, one at a time
         for (let i = 0; i < this.numPhases; i++) {
             // For each phase, we collect the action each robot will perform into an array of RobotPhaseAction objects.
             // We then execute the actions in priority order.
-            var actions = [];
+            var robotMovements = [];
             for (let turn of turns) {
-                actions.push(new RobotPhaseAction(turn.robot, turn.programCards[i]));
+                robotMovements.push(new RobotPhaseMovement(turn.robot, turn.programCards[i]));
             }
 
-            this.runActions(actions);
+            this.runRobotMovements(robotMovements);
 
-            this.board.executeBoardElements();
-            this.board.fireLasers();
-            this.board.touchCheckpoints();
+            Board.Instance.executeBoardElements();
+            Board.Instance.fireLasers();
+            Board.Instance.touchFlags();
         }
     }
 
-    private runActions(actions: RobotPhaseAction[]) {
-        this.sortActions(actions);
+    private runRobotMovements(robotMovements: RobotPhaseMovement[]) {
+        this.sortRobotMovements(robotMovements);
 
-        for (let action of actions) {
-            this.executeAction(action);
+        for (let movement of robotMovements) {
+            this.tryExecuteRobotMovement(movement);
         }
     }
 
-    private executeAction(robotPhase: RobotPhaseAction) {
-        this.board
+    private tryExecuteRobotMovement(robotMovement: RobotPhaseMovement) {
+        if (!robotMovement.robot.isDead()) {
+            Board.Instance.runRobotProgram(robotMovement.robot, robotMovement.programCard);
+        }
     }
 
-    private sortActions(actions: RobotPhaseAction[]) {
-        actions.sort(function (a, b) {
+    private sortRobotMovements(movements: RobotPhaseMovement[]) {
+        movements.sort(function (a, b) {
             return b.programCard.priority - a.programCard.priority;
         });
     }

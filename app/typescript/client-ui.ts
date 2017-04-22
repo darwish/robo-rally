@@ -1,7 +1,4 @@
-﻿declare var $: any;
-declare var socket: any;
-
-class ClientUI {
+﻿class ClientUI {
     private state: ClientState = ClientState.GAME_PENDING;
 }
 
