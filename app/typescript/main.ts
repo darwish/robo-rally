@@ -31,6 +31,8 @@ class Main {
         map.addTilesetImage('RoboRallyOriginal', 'tileset');
         map.createLayer('Tile Layer 1').resizeWorld();
         map.createLayer('Tile Layer 2');
+
+        new Board(map);
     }
 
     public initGameObject() {

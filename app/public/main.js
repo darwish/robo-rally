@@ -23,7 +23,8 @@ var Board = (function () {
             }
         });
     };
-    Board.prototype.addRobot = function (newRobot) {
+    Board.prototype.onPlayerJoined = function (playerID) {
+        var newRobot = new Robot(playerID, new BoardPosition(0, 0), 0, 3); // TODO: can't start all robots at the same place
         this.robots.push(newRobot);
     };
     Board.prototype.moveRobot = function (robot, distance, direction) {
@@ -53,21 +54,22 @@ var Board = (function () {
     };
     Board.prototype.attemptMoveRobot = function (robot, direction) {
         if (this.hasObstacleInDirection(robot.position, direction)) {
-            throw new Error("Cannot move robot! Obstacle in the way.");
+            return false;
         }
         var newPosition = robot.position.getAdjacentPosition(direction);
         if (!this.isPositionOnBoard(newPosition) || this.getTileType(newPosition) == "Pit") {
             robot.removeFromBoard();
-            return;
+            return true;
         }
         for (var _i = 0, _a = this.robots; _i < _a.length; _i++) {
             var otherRobot = _a[_i];
             if (otherRobot.position.x == newPosition.x && otherRobot.position.y == newPosition.y) {
-                try {
-                    this.attemptMoveRobot(otherRobot, direction);
+                if (this.attemptMoveRobot(otherRobot, direction)) {
                     robot.position = newPosition;
+                    return true;
                 }
-                catch (e) {
+                else {
+                    return false;
                 }
             }
         }
@@ -92,6 +94,10 @@ var Board = (function () {
             && DirectionUtil.getDirection(tile.rotation) == direction) {
             return true;
         }
+        else if ((tile.index == 16 || tile.index == 17)
+            && DirectionUtil.getDirection(tile.rotation + 90) == direction) {
+            return true;
+        }
         return false;
     };
     Board.prototype.runRobotProgram = function (robot, programAction) {
@@ -108,16 +114,25 @@ var Board = (function () {
                 break;
         }
     };
-    Board.prototype.executeBoardElements = function () {
+    Board.prototype.executeBoardElements = function (phase) {
         this.runConveyorBelts();
-        this.runPushers();
+        this.runPushers(phase);
         this.runGears();
     };
     Board.prototype.runConveyorBelts = function () {
         // TODO:
     };
-    Board.prototype.runPushers = function () {
-        // TODO:
+    Board.prototype.runPushers = function (phase) {
+        for (var _i = 0, _a = this.robots; _i < _a.length; _i++) {
+            var robot = _a[_i];
+            var tile = this.map.getTile(robot.position.x, robot.position.y, "Wall Layer");
+            if (tile.index == 16 && phase % 2 == 1) {
+                this.attemptMoveRobot(robot, DirectionUtil.getDirection(tile.rotation + 90));
+            }
+            else if (tile.index == 17 && phase % 2 == 0) {
+                this.attemptMoveRobot(robot, DirectionUtil.getDirection(tile.rotation + 90));
+            }
+        }
     };
     Board.prototype.runGears = function () {
         for (var _i = 0, _a = this.robots; _i < _a.length; _i++) {
@@ -251,6 +266,7 @@ var ClientGame = (function () {
     ClientGame.prototype.addPlayer = function (playerId) {
         if (this.gameData.playerIds.indexOf(playerId) == -1) {
             this.gameData.playerIds.push(playerId);
+            Board.Instance.onPlayerJoined(playerId);
             this.saveGame();
         }
     };
@@ -419,6 +435,7 @@ var Main = (function () {
         map.addTilesetImage('RoboRallyOriginal', 'tileset');
         map.createLayer('Tile Layer 1').resizeWorld();
         map.createLayer('Tile Layer 2');
+        new Board(map);
     };
     Main.prototype.initGameObject = function () {
         phaserGame = new Phaser.Game(900, 900, Phaser.AUTO, $('#gameContainer')[0], { preload: this.preload, create: this.create });
@@ -519,7 +536,8 @@ var ProgramCardType;
     ProgramCardType[ProgramCardType["ROTATE"] = 1] = "ROTATE";
 })(ProgramCardType || (ProgramCardType = {}));
 var Robot = (function () {
-    function Robot(position, orientation, lives, health) {
+    function Robot(playerID, position, orientation, lives, health) {
+        this.playerID = playerID;
         this.position = position;
         this.orientation = orientation;
         this.lives = lives;
@@ -612,7 +630,7 @@ var TurnLogic = (function () {
                 robotMovements.push(new RobotPhaseMovement(turn.robot, turn.programCards[i]));
             }
             this.runRobotMovements(robotMovements);
-            Board.Instance.executeBoardElements();
+            Board.Instance.executeBoardElements(i);
             Board.Instance.fireLasers();
             Board.Instance.touchFlags();
         }

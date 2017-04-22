@@ -36,9 +36,8 @@ class Board {
         });
     }
 
-    
-
-    public addRobot(newRobot: Robot) {
+    public onPlayerJoined(playerID: string) {
+        var newRobot = new Robot(playerID, new BoardPosition(0, 0), 0, 3); // TODO: can't start all robots at the same place
         this.robots.push(newRobot);
     }
 
