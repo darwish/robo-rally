@@ -19,7 +19,16 @@ class Robot {
     }
 
     public isDead() {
-        return this.health == 0;
+        return this.health <= 0;
+    }
+
+    public dealDamage(damageAmount: number) {
+        if (this.health - damageAmount <= 0) {
+            this.health = 0;
+        }
+        else {
+            this.health -= damageAmount;
+        }
     }
 
     public turn(quarterRotationsCW: number) {
