@@ -10,4 +10,8 @@ class DirectionUtil {
     public static getDirection(angleInDegrees) {
         return angleInDegrees / 90;
     }
+
+    public static getOppositeDirection(direction: Direction) {
+        return (direction + 2) % 4;
+    }
 }
