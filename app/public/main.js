@@ -26,15 +26,9 @@ var Board = (function () {
     Board.prototype.addRobot = function (newRobot) {
         this.robots.push(newRobot);
     };
-    Board.prototype.turnRobot = function (robot, quarterRotationsCW) {
-        robot.orientation = (robot.orientation + quarterRotationsCW) % 4;
-        if (robot.orientation < 0) {
-            robot.orientation += 4;
-        }
-    };
     Board.prototype.moveRobot = function (robot, distance, direction) {
         if (distance < 0) {
-            throw new Error("Cannot move negatice distance!");
+            throw new Error("Cannot move negative distance!");
         }
         while (distance > 0) {
             distance--;
@@ -103,7 +97,7 @@ var Board = (function () {
     Board.prototype.runRobotProgram = function (robot, programAction) {
         switch (programAction.type) {
             case ProgramCardType.ROTATE:
-                this.turnRobot(robot, programAction.distance);
+                robot.rotate(programAction.distance);
                 break;
             case ProgramCardType.MOVE:
                 var orientation_1 = robot.orientation;
@@ -115,7 +109,27 @@ var Board = (function () {
         }
     };
     Board.prototype.executeBoardElements = function () {
+        this.runConveyorBelts();
+        this.runPushers();
+        this.runGears();
+    };
+    Board.prototype.runConveyorBelts = function () {
         // TODO:
+    };
+    Board.prototype.runPushers = function () {
+        // TODO:
+    };
+    Board.prototype.runGears = function () {
+        for (var _i = 0, _a = this.robots; _i < _a.length; _i++) {
+            var robot = _a[_i];
+            var tile = this.map.getTile(robot.position.x, robot.position.y, "Floor Layer");
+            if (tile.index == 20) {
+                robot.rotate(-1);
+            }
+            else if (tile.index == 21) {
+                robot.rotate(1);
+            }
+        }
     };
     Board.prototype.fireLasers = function () {
         for (var _i = 0, _a = this.lasers; _i < _a.length; _i++) {
@@ -260,19 +274,21 @@ var ClientGame = (function () {
             return false;
         }
         this.gameData = JSON.parse(localStorage['Game_' + this.gameId]);
-        socket.emit('join', { gameId: this.gameId, clientId: this.clientId });
+        socket.emit('join', { gameId: this.gameId, clientId: this.clientId, friendlyName: this.friendlyName });
         // TODO: load state
         return true;
     };
     ClientGame.prototype.joinGame = function () {
-        socket.emit('join', { gameId: this.gameId, clientId: this.clientId });
+        socket.emit('join', { gameId: this.gameId, clientId: this.clientId, friendlyName: this.friendlyName });
     };
     ClientGame.prototype.getOrCreateClientId = function () {
         if ('clientId' in localStorage) {
             this.clientId = localStorage['clientId'];
+            this.friendlyName = localStorage['friendlyName'];
         }
         else {
             this.clientId = localStorage['clientId'] = Guid.newGuid();
+            this.friendlyName = localStorage['friendlyName'] = generateName();
         }
     };
     return ClientGame;
@@ -307,11 +323,14 @@ var DirectionUtil = (function () {
         }
         return angleInDegrees / 90 % 360;
     };
-    DirectionUtil.opposite = function (direction) {
-        return direction + 2 % 4;
+    DirectionUtil.clamp = function (direction) {
+        while (direction < 0) {
+            direction += 4;
+        }
+        return direction % 4;
     };
-    DirectionUtil.getOppositeDirection = function (direction) {
-        return (direction + 2) % 4;
+    DirectionUtil.opposite = function (direction) {
+        return DirectionUtil.clamp(direction + 2);
     };
     return DirectionUtil;
 }());
@@ -488,6 +507,13 @@ function generateName() {
         return words[Math.floor(Math.random() * words.length)];
     }
 }
+var words = ["Berry", "Blossom", "Bride", "Butterfly", "Candy", "Couple", "Cream", "Dear", "Dress", "Dumpling", "Flower", "Flute", "Girdle", "Glimmer", "Glisten", "Gloss", "Honey", "Incense", "Knit", "Lace", "Lark", "Lute", "Lyric", "Meadow", "Mellow", "Mother", "Music", "Nestle", "Nurture", "Pregnant", "Prim", "Queen", "Satin", "Sheen", "Show", "Silk", "Silky", "Sing", "Sister", "Skirt", "Skirt", "Smile", "Style", "Sugar", "Sweet", "Trim", "Tulip", "Tweet", "Velvet", "Wavy", "Wisp", "Wonder", "Dessert", "Fancy", "Lather", "Petal", "Droplet", "Pantomime", "Fragrance", "Glitter", "Sparkle", "Tragedy", "Cyclopean", "Trifle", "Luxury", "Euphoria", "Scintillate", "Sensual", "Malodorous", "Venerate", "Tress", "Ensorcel", "Fabulous", "Mirth", "Laconic", "Quiescent", "Reticent", "Saturnine", "Taciturn", "Fortuitous", "Tenebrous", "Morose", "Beloved", "Suitor", "Pungent", "Cherish", "Pristine", "Languish", "Adore", "Embrace", "Meander", "Bewilder", "Intricate", "Poem", "Poetry", "Poet", "Amethyst", "Aquamarine", "Azure", "Beige", "Sienna", "Umber", "Cardinal", "Carmine", "Cerulean", "Chartreuse", "Fuchsia", "Goldenrod", "Heliotrope", "Lavender", "Lilac", "Mauve", "Taupe", "Periwinkle", "Russet", "Saffron", "Vermilion", "Festival", "Animal", "Ape", "Autumn", "Beak", "Beast", "Bear", "Bee", "Beetle", "Berry", "Bird", "Blaze", "Blossom", "Boar", "Bog", "Buck", "Bush", "Butterfly", "Buzzard", "Canyon", "Cat", "Chill", "Chirp", "Clam", "Clearing", "Cobra", "Crab", "Creek", "Crow", "Dawn", "Deer", "Dirt", "Dusk", "Eagle", "Eel", "Fang", "Fin", "Fish", "Flower", "Fog", "Forest", "Frog", "Fruit", "Fungus", "Fur", "Gerbil", "Glen", "Gore", "Gorge", "Grape", "Grass", "Grove", "Grow", "Growl", "Growth", "Grub", "Hare", "Hawk", "Heather", "Hedge", "Hide", "Hill", "Hoary", "Hog", "Hoof", "Hop", "Horn", "Howl", "Ivy", "Jackal", "Jaw", "Jungle", "Kitten", "Lake", "Lark", "Larva", "Leaf", "Leopard", "Lizard", "Lobster", "Lush", "Maggot", "Mange", "Marsh", "Maw", "Meadow", "Mist", "Mite", "Mold", "Mole", "Monkey", "Moth", "Mud", "Mushroom", "Nature", "Nest", "Nettle", "Newt", "Nut", "Oak", "Owl", "Pack", "Panther", "Peach", "Plant", "Planter", "Rabbit", "Rain", "Ram", "Raptor", "Rat", "Raven", "Ripe", "River", "Rock", "Root", "Rose", "Sap", "Scorpion", "Sea", "Seal", "Season", "Seed", "Serpent", "Shark", "Shell", "Silt", "Skunk", "Sky", "Slither", "Slug", "Snake", "Soil", "Spider", "Spidery", "Spring", "Squid", "Stick", "Stone", "Storm", "Straw", "Summer", "Sun", "Swamp", "Tail", "Talon", "Tempest", "Thorn", "Thunder", "Tick", "Toad", "Tulip", "Tusk", "Tweet", "Twilight", "Vegetable", "Vegetation", "Viper", "Volcano", "Vulture", "Wasp", "Wave", "Weasel", "Weed", "Wheat", "Wing", "Winter", "Wood", "Worm", "Earth", "Bud", "Desert", "Field", "Glacier", "Mountain", "Prairie", "Tentacle", "Tundra", "Weevil", "Dune", "Pine", "Puppy", "Gnarled", "Stump", "Beard", "Water", "Wax", "Roar", "Ford", "Snarl", "Drink", "Flight", "Twig", "Tuft", "Fern", "Gully", "Lion", "Cactus", "Cloud", "Bean", "Pearl", "Pear", "Bunny", "Wind storm", "Skin", "Shin", "Island", "Grotto", "Shore", "Beach", "Coast", "Insect", "Bug", "Critter", "Pristine", "Weather", "Dale", "Dell", "Glade", "Vale", "Basin", "Den", "Valley", "Cyclone", "Typhoon", "Hurricane", "Gale", "Tornado", "Scale", "Whisker", "Bulb", "Stream", "Creature", "Snail", "Vine", "Morning", "Tree", "Chestnut", "Cinnamon", "Olive", "Flax", "Fuchsia", "Goldenrod", "Heliotrope", "Lavender", "Lemon", "Lilac", "Lime", "Mahogany", "Mint", "Moss", "Orange", "Periwinkle", "Plum", "Pumpkin", "Saffron", "Sepia", "Teal", "Birth", "Leap", "Jump", "Dive"];
+function generateName() {
+    return getRandomName() + ' ' + getRandomName();
+    function getRandomName() {
+        return words[Math.floor(Math.random() * words.length)];
+    }
+}
 var OptionCard = (function () {
     function OptionCard() {
     }
@@ -542,6 +568,9 @@ var Robot = (function () {
         this.registeredProgramCards = [];
         this.lastFlagOrder = 0;
     }
+    Robot.prototype.rotate = function (quarterRotationsCW) {
+        this.orientation = DirectionUtil.clamp(this.orientation + quarterRotationsCW);
+    };
     Robot.prototype.isDead = function () {
         return this.health <= 0;
     };

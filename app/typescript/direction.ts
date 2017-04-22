@@ -15,11 +15,15 @@ class DirectionUtil {
         return angleInDegrees / 90 % 360;
     }
 
-    public static opposite(direction) {
-        return direction + 2 % 4;
+    public static clamp(direction: Direction) {
+        while (direction < 0) {
+            direction += 4;
+        }
+
+        return direction % 4;
     }
 
-    public static getOppositeDirection(direction: Direction) {
-        return (direction + 2) % 4;
+    public static opposite(direction: Direction) {
+        return DirectionUtil.clamp(direction + 2);
     }
 }

@@ -23,6 +23,10 @@ class Robot {
         this.lastFlagOrder = 0;
     }
 
+    public rotate(quarterRotationsCW: number) {
+        this.orientation = DirectionUtil.clamp(this.orientation + quarterRotationsCW);
+    }
+
     public isDead() {
         return this.health <= 0;
     }

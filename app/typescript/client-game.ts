@@ -1,5 +1,6 @@
 ﻿class ClientGame {
     public clientId: string;
+    public friendlyName: string;
     private gameData: any;
 
     constructor(public gameId: string) {
@@ -53,21 +54,23 @@
         }
 
         this.gameData = JSON.parse(localStorage['Game_' + this.gameId]);
-        socket.emit('join', { gameId: this.gameId, clientId: this.clientId });
+        socket.emit('join', { gameId: this.gameId, clientId: this.clientId, friendlyName: this.friendlyName });
         // TODO: load state
 
         return true;
     }
 
     public joinGame() {
-        socket.emit('join', { gameId: this.gameId, clientId: this.clientId });
+        socket.emit('join', { gameId: this.gameId, clientId: this.clientId, friendlyName: this.friendlyName  });
     }
 
     private getOrCreateClientId() {
         if ('clientId' in localStorage) {
             this.clientId = localStorage['clientId'];
+            this.friendlyName = localStorage['friendlyName'];
         } else {
             this.clientId = localStorage['clientId'] = Guid.newGuid();
-        }
+            this.friendlyName = localStorage['friendlyName'] = generateName();
+       }
     }
 }

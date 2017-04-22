@@ -42,16 +42,9 @@ class Board {
         this.robots.push(newRobot);
     }
 
-    protected turnRobot(robot: Robot, quarterRotationsCW: number) {
-        robot.orientation = (robot.orientation + quarterRotationsCW) % 4;
-        if (robot.orientation < 0) {
-            robot.orientation += 4;
-        }
-    }
-
     protected moveRobot(robot: Robot, distance: number, direction: Direction) {
         if (distance < 0) {
-            throw new Error("Cannot move negatice distance!");
+            throw new Error("Cannot move negative distance!");
         }
         while (distance > 0) {
             distance--;
@@ -81,22 +74,23 @@ class Board {
 
     protected attemptMoveRobot(robot: Robot, direction: Direction) {
         if (this.hasObstacleInDirection(robot.position, direction)) {
-            throw new Error("Cannot move robot! Obstacle in the way.");
+            return false;
         }
 
         let newPosition = robot.position.getAdjacentPosition(direction);
         if (!this.isPositionOnBoard(newPosition) || this.getTileType(newPosition) == "Pit") {
             robot.removeFromBoard();
-            return;
+            return true;
         }
 
         for (let otherRobot of this.robots) {
             if (otherRobot.position.x == newPosition.x && otherRobot.position.y == newPosition.y) {
-                try {
-                    this.attemptMoveRobot(otherRobot, direction);
+                if (this.attemptMoveRobot(otherRobot, direction)) {
                     robot.position = newPosition;
-                } catch (e) {
-                    // continue processing moves
+                    return true;
+                }
+                else {
+                    return false;
                 }
             }
         }
@@ -125,6 +119,10 @@ class Board {
             && DirectionUtil.getDirection(tile.rotation) == direction) {
             return true;
         }
+        else if ((tile.index == 16 || tile.index == 17)
+            && DirectionUtil.getDirection(tile.rotation + 90) == direction) {
+            return true;
+        }
 
         return false;
     }
@@ -132,7 +130,7 @@ class Board {
     public runRobotProgram(robot: Robot, programAction: ProgramCard) {
         switch (programAction.type) {
             case ProgramCardType.ROTATE:
-                this.turnRobot(robot, programAction.distance);
+                robot.rotate(programAction.distance);
                 break;
             case ProgramCardType.MOVE:
                 let orientation = robot.orientation;
@@ -144,8 +142,38 @@ class Board {
         }
     }
 
-    public executeBoardElements() {
+    public executeBoardElements(phase: number) {
+        this.runConveyorBelts();
+        this.runPushers(phase);
+        this.runGears();
+    }
+
+    private runConveyorBelts() {
         // TODO:
+    }
+
+    private runPushers(phase: number) {
+        for (let robot of this.robots) {
+            var tile: Phaser.Tile = this.map.getTile(robot.position.x, robot.position.y, "Wall Layer");
+            if (tile.index == 16 && phase % 2 == 1) {
+                this.attemptMoveRobot(robot, DirectionUtil.getDirection(tile.rotation + 90));
+            }
+            else if (tile.index == 17 && phase % 2 == 0) {
+                this.attemptMoveRobot(robot, DirectionUtil.getDirection(tile.rotation + 90));
+            }
+        }
+    }
+
+    private runGears() {
+        for (let robot of this.robots) {
+            var tile: Phaser.Tile = this.map.getTile(robot.position.x, robot.position.y, "Floor Layer");
+            if (tile.index == 20) {
+                robot.rotate(-1);
+            }
+            else if (tile.index == 21) {
+                robot.rotate(1);
+            }
+        }
     }
 
     public fireLasers() {
