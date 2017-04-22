@@ -8,6 +8,10 @@ enum Direction {
 
 class DirectionUtil {
     public static getDirection(angleInDegrees) {
-        return angleInDegrees / 90;
+        while (angleInDegrees < 0) {
+            angleInDegrees += 360;
+        }
+
+        return angleInDegrees / 90 % 360;
     }
 }

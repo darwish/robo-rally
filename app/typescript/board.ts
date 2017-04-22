@@ -19,6 +19,7 @@ class Board {
     }
 
     private loadBoard() {
+
         this.map.objects.forEach(object => {
             if (object.type == "Laser") {
                 var newLaser = new Laser(new BoardPosition(object.x, object.y), DirectionUtil.getDirection(object.rotation), object.count);
@@ -73,9 +74,27 @@ class Board {
         }
     }
 
-    public hasObstacleInDirection(fromPosition: BoardPosition, direction: Direction) {
-        // figure out if there are any permanent obstacles preventing progress in a certain direction
-        return true;
+    public hasObstacleInDirection(tilePosition: BoardPosition, direction: Direction) {
+
+        if (this.hasObstacleInDirectionInternal(tilePosition, direction)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private hasObstacleInDirectionInternal(tilePosition: BoardPosition, direction: Direction) {
+        var tile: Phaser.Tile = this.map.getTile(tilePosition.x, tilePosition.y, "Wall Layer");
+        if (tile.index == 12
+            && (DirectionUtil.getDirection(tile.rotation) == direction || DirectionUtil.getDirection(tile.rotation + 90) == direction)) {
+            return true;
+        }
+        else if (tile.index == 13
+            && DirectionUtil.getDirection(tile.rotation) == direction) {
+            return true;
+        }
+
+        return false;
     }
 
     public runRobotProgram(robot: Robot, programAction: ProgramCard) {
