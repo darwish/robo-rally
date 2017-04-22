@@ -40,7 +40,7 @@ class Robot {
         if (this.health + healingAmount >= this.maxHealth) {
             this.health = this.maxHealth;
         } else {
-            this.health += 1;
+            this.health += healingAmount;
         }
     }
 
