@@ -28641,6 +28641,9 @@ declare module Phaser {
         */
         right: number;
 
+        /** The rotation in degrees CW. */
+        rotation: number;
+
         /**
         * Has this tile been walked / turned into a poly?
         */
