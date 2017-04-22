@@ -14,6 +14,7 @@
     public setSelfAsHost() {
         this.gameData.hostId = this.clientId;
         this.addPlayer(this.clientId);
+        this.saveGame();
     }
 
     public isHost() {
@@ -21,11 +22,19 @@
     }
 
     public addPlayer(playerId: string) {
-        this.gameData.playerIds.push(playerId);
+        if (this.gameData.playerIds.indexOf(playerId) == -1) {
+            this.gameData.playerIds.push(playerId);
+            this.saveGame();
+        }
     }
 
     public getPlayers(): string[] {
         return this.gameData.playerIds;
+    }
+
+    public setPlayers(players: string[]) {
+        this.gameData.playerIds = players;
+        this.saveGame();
     }
 
     public saveGame() {
@@ -40,7 +49,7 @@
 
     public loadGame() {
         if (!localStorage['Game_' + this.gameId]) {
-            return null;
+            return false;
         }
 
         this.gameData = JSON.parse(localStorage['Game_' + this.gameId]);
@@ -51,6 +60,7 @@
     }
 
     public joinGame() {
+        socket.emit('join', { gameId: this.gameId, clientId: this.clientId });
     }
 
     private getOrCreateClientId() {

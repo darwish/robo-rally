@@ -26,7 +26,6 @@
             $.post('/create', function (gameId) {
                 var clientGame = new ClientGame(gameId);
                 clientGame.setSelfAsHost();
-                clientGame.saveGame();
                 location = '/g/' + gameId;
             });
         });
