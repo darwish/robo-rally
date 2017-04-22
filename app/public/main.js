@@ -20,25 +20,23 @@ function create() {
 
 function startGame() {
     game = new Phaser.Game(900, 900, Phaser.AUTO, $('#gameContainer')[0], { preload: preload, create: create });
-    game.antialias = 2;
-
 }
 
 function loadGame(id) {
-  if (!localStorage['Game_' + id])
-    return null;
-  
-  var data = JSON.parse(localStorage['Game_' + id]);  
-  io.emit('join', { id: id, name: data.name, isHost: data.isHost });
-  // TODO: load state
-  
-  return data;
+    if (!localStorage['Game_' + id])
+        return null;
+
+    var data = JSON.parse(localStorage['Game_' + id]);
+    io.emit('join', { id: id, name: data.name, isHost: data.isHost });
+    // TODO: load state
+
+    return data;
 }
 
 function saveGame() {
-  var data = {};
-  // TODO: get game state
-  
-  if (data.id)
-    localStorage['Game_' + data.id] = JSON.stringify(data);
+    var data = {};
+    // TODO: get game state
+
+    if (data.id)
+        localStorage['Game_' + data.id] = JSON.stringify(data);
 }
