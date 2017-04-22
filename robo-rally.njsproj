@@ -42,6 +42,9 @@
     <Content Include="app\public\style.css" />
     <Compile Include="app\public\main.js" />
     <Compile Include="app\public\qrcode.min.js" />
+    <Content Include="tsconfig.json">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="app\views\index.html" />
   </ItemGroup>
   <ItemGroup>
@@ -67,6 +70,7 @@
     <TypeScriptCompile Include="app\typescript\program-card.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
+    <TypeScriptCompile Include="app\typescript\robot-phase.ts" />
     <TypeScriptCompile Include="app\typescript\robot-turn.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
