@@ -4,6 +4,8 @@
 
     public robots: Robot[];
 
+    private lasers: Laser[];
+
     constructor(public map: Phaser.Tilemap)
     {
         if (Board.Instance != null) {
@@ -11,6 +13,8 @@
         }
 
         Board.Instance = this;
+
+        this.loadBoard();
     }
 
     public addRobot(newRobot: Robot) {
@@ -21,6 +25,16 @@
         robot.orientation = (robot.orientation + quarterRotationsCW) % 4;
         if (robot.orientation < 0) {
             robot.orientation += 4;
+        }
+    }
+
+    private loadBoard() {
+        // TODO: Actually load and store the lasers
+    }
+
+    public fireLasers() {
+        for (let laser of this.lasers) {
+            laser.fire();
         }
     }
 }
