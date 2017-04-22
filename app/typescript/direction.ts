@@ -5,3 +5,9 @@ enum Direction {
     S = 2,
     W = 3
 }
+
+class DirectionUtil {
+    public static getDirection(angleInDegrees) {
+        return angleInDegrees / 90;
+    }
+}

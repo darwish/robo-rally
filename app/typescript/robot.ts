@@ -1,10 +1,12 @@
 class Robot {
 
+    public respawnPosition: BoardPosition;
     public isPoweredDown: boolean;
     public optionCards: OptionCard[];
     public lockedRegisters: number[];
     public availableProgramCards: ProgramCard[];
     public registeredProgramCards: ProgramCard[];
+    public lastFlagOrder: number;
 
     readonly maxHealth = 9;
 
@@ -18,6 +20,7 @@ class Robot {
         this.lockedRegisters = [];
         this.availableProgramCards = [];
         this.registeredProgramCards = [];
+        this.lastFlagOrder = 0;
     }
 
     public isDead() {

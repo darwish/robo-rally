@@ -1,8 +1,11 @@
-﻿class Board {
+class Board {
 
     static Instance: Board
 
     public robots: Robot[];
+
+    private lasers: Laser[];
+    private flags: Flag[];
 
     constructor(public map: Phaser.Tilemap)
     {
@@ -11,6 +14,25 @@
         }
 
         Board.Instance = this;
+
+        this.loadBoard();
+    }
+
+    private loadBoard() {
+        this.map.objects.forEach(object => {
+            if (object.type == "Laser") {
+                var newLaser = new Laser(new BoardPosition(object.x, object.y), DirectionUtil.getDirection(object.rotation), object.count);
+                this.lasers.push(newLaser);
+            }
+            else if (object.type == "Flag") {
+                var newFlag = new Flag(new BoardPosition(object.x, object.y), object.order);
+                this.flags.push(newFlag);
+
+                if (newFlag.order > Flag.highestOrder) {
+                    Flag.highestOrder = newFlag.order;
+                }
+            }
+        });
     }
 
     public addRobot(newRobot: Robot) {
@@ -68,6 +90,27 @@
                 }
                 this.moveRobot(robot, Math.abs(programAction.distance), orientation);
                 break;
+        }
+    }
+
+    public executeBoardElements() {
+        // TODO:
+    }
+
+    public fireLasers() {
+        for (let laser of this.lasers) {
+            laser.fire();
+        }
+    }
+
+    public touchFlags() {
+        for (let flag of this.flags) {
+            for (let robot of this.robots) {
+                if (robot.position.x == flag.position.x
+                    && robot.position.y == flag.position.y) {
+                    flag.touchedBy(robot);
+                }
+            }
         }
     }
 }
