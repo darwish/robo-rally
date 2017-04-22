@@ -1,5 +1,7 @@
 ﻿/* globals Phaser io */
-/// <reference path="path to your tsd.d.ts" />
+
+declare var $: any;
+declare var io: any;
 
 var game, map;
 
@@ -35,9 +37,9 @@ function loadGame(id) {
 }
 
 function saveGame() {
-    var data = {};
+    var data: { [key: string]: string } = {};
     // TODO: get game state
 
-    if (data.id)
-        localStorage['Game_' + data.id] = JSON.stringify(data);
+    if (data["id"])
+        localStorage['Game_' + data["id"]] = JSON.stringify(data);
 }
