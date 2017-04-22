@@ -1,7 +1,7 @@
-﻿class BoardLogic {
+﻿class TurnLogic {
     readonly numPhases = 5;
 
-    constructor(public map: Phaser.Tilemap, public board: Board) { }
+    constructor(public board: Board) { }
 
     run(turns: RobotTurn[]) {
         // Execute each phase, one at a time
