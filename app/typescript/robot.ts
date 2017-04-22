@@ -43,4 +43,9 @@ class Robot {
             this.health += 1;
         }
     }
+
+    public removeFromBoard() {
+        this.position.x = undefined;
+        this.position.y = undefined;
+    }
 }
