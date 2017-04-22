@@ -17,6 +17,8 @@ assets/
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
+.vscode/
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
