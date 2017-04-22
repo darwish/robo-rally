@@ -1,45 +1,80 @@
-﻿/* globals Phaser io */
-
-declare var $: any;
+﻿declare var $: any;
 declare var io: any;
+declare var QRCode: any;
 
-var game, map;
+declare var phaserGame: Phaser.Game;
+declare var map: Phaser.Tilemap;
+declare var clientGame: ClientGame;
+declare var clientUI: ClientUI;
 
 function preload() {
-    game.load.baseURL = 'https://cdn.glitch.com/';
-    game.load.crossOrigin = 'anonymous';
+    phaserGame.load.baseURL = 'https://cdn.glitch.com/';
+    phaserGame.load.crossOrigin = 'anonymous';
 
-    game.load.image('laser', '389dcdd1-6e4d-4bcb-aedc-9d688fb06c3f%2FLaser%20Small.png?1491971767592');
-    game.load.image('tileset', '389dcdd1-6e4d-4bcb-aedc-9d688fb06c3f%2FSpritesheet%20Small.png?1491966800433');
-    game.load.tilemap('tilemap', '389dcdd1-6e4d-4bcb-aedc-9d688fb06c3f%2FCross.json?1491966835347', null, Phaser.Tilemap.TILED_JSON);
+    phaserGame.load.image('laser', '389dcdd1-6e4d-4bcb-aedc-9d688fb06c3f%2FLaser%20Small.png?1491971767592');
+    phaserGame.load.image('tileset', '389dcdd1-6e4d-4bcb-aedc-9d688fb06c3f%2FSpritesheet%20Small.png?1491966800433');
+    phaserGame.load.tilemap('tilemap', '389dcdd1-6e4d-4bcb-aedc-9d688fb06c3f%2FCross.json?1491966835347', null, Phaser.Tilemap.TILED_JSON);
 }
 
 function create() {
-    map = game.add.tilemap('tilemap');
+    map = phaserGame.add.tilemap('tilemap');
     map.addTilesetImage('RoboRallyOriginal', 'tileset');
     map.createLayer('Tile Layer 1').resizeWorld();
     map.createLayer('Tile Layer 2');
 }
 
+function initGameObject() {
+    phaserGame = new Phaser.Game(900, 900, Phaser.AUTO, $('#gameContainer')[0], { preload: preload, create: create });
+}
+
+function waitForPlayers() {
+    initGameObject();
+
+    if (clientGame.isHost()) {
+        showWaitingPlayers(clientGame);
+    } else {
+        clientGame.loadOrJoin();
+        showWaitingPlayers(clientGame);
+    }
+
+    socket.on('joined', function(clientId) {
+        clientGame.addPlayer(clientId);
+        showWaitingPlayers(clientGame);
+    });
+}
+
+function showWaitingPlayers(clientGame: ClientGame) {
+    var list = clientGame.getPlayers().map(function(playerid) {
+        return '<li>' + playerid + '</li>';
+    });
+    $('.playersList').html(list);
+}
+
 function startGame() {
-    game = new Phaser.Game(900, 900, Phaser.AUTO, $('#gameContainer')[0], { preload: preload, create: create });
+    clientUI = new ClientUI(clientGame.isHost());
+    if (clientGame.isHost()) {
+        var hands = clientUI.dealCards([9, 9, 9, 9, 9]);
+        socket.emit('dealtCards', hands);
+    } else {
+        clientUI.waitForCards();
+    }
 }
 
-function loadGame(id) {
-    if (!localStorage['Game_' + id])
-        return null;
+function initRoboRally() {
+    var gameId = location.pathname.match(/^\/g\/(\w+)/)[1];
 
-    var data = JSON.parse(localStorage['Game_' + id]);
-    io.emit('join', { id: id, name: data.name, isHost: data.isHost });
-    // TODO: load state
+    clientGame = new ClientGame(gameId);
+    socket = io();
 
-    return data;
-}
+    $(window).load(function () {
+        $('.code').text(gameId)
+        $('.gameInfo').show();
+        new QRCode($(".qrcode")[0], { text: "https://robo-rally.glitch.me/g/" + gameId, width: 66, height: 66 });
+        // TODO save game
 
-function saveGame() {
-    var data: { [key: string]: string } = {};
-    // TODO: get game state
+        clientGame.loadOrJoin();
+        waitForPlayers();
+    });
 
-    if (data["id"])
-        localStorage['Game_' + data["id"]] = JSON.stringify(data);
+    $('.startGame').click(startGame);
 }

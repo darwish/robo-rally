@@ -41,6 +41,7 @@
     <Compile Include="app\server.js" />
     <Content Include="app\public\style.css" />
     <Compile Include="app\public\qrcode.min.js" />
+    <Content Include="app\views\game.html" />
     <Content Include="tsconfig.json">
       <SubType>Code</SubType>
     </Content>
@@ -64,7 +65,19 @@
     <TypeScriptCompile Include="app\typescript\board.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
+    <TypeScriptCompile Include="app\typescript\card-deck.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="app\typescript\client-game.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="app\typescript\client-ui.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="app\typescript\direction.ts" />
+    <TypeScriptCompile Include="app\typescript\guid.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="app\typescript\laser.ts" />
     <TypeScriptCompile Include="app\typescript\main.ts" />
     <TypeScriptCompile Include="app\typescript\option-card.ts" />
