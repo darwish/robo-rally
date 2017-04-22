@@ -36,6 +36,8 @@ class Board {
         });
     }
 
+    
+
     public addRobot(newRobot: Robot) {
         this.robots.push(newRobot);
     }
@@ -82,7 +84,7 @@ class Board {
             throw new Error("Cannot move robot! Obstacle in the way.");
         }
 
-        let newPosition = this.getAdjacentBoardPosition(robot.position, direction);
+        let newPosition = robot.position.getAdjacentPosition(direction);
         if (!this.isPositionOnBoard(newPosition) || this.getTileType(newPosition) == "Pit") {
             robot.removeFromBoard();
             return;
@@ -100,17 +102,11 @@ class Board {
         }
     }
 
-    public getAdjacentBoardPosition(fromPosition: BoardPosition, direction: Direction) {
-        switch (direction) {
-            case Direction.N:
-                return new BoardPosition(fromPosition.x, fromPosition.y + 1);
-            case Direction.E:
-                return new BoardPosition(fromPosition.x + 1, fromPosition.y);
-            case Direction.S:
-                return new BoardPosition(fromPosition.x, fromPosition.y - 1);
-            case Direction.N:
-                return new BoardPosition(fromPosition.x - 1, fromPosition.y);
+    public hasObstacleInDirection(fromPosition: BoardPosition, direction: Direction) {
+        if (this.hasWall(fromPosition, direction) || this.hasWall(fromPosition.getAdjacentPosition(direction))) {
+            return true;
         }
+        return false
     }
 
     public hasObstacleInDirection(tilePosition: BoardPosition, direction: Direction) {

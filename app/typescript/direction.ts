@@ -18,4 +18,8 @@ class DirectionUtil {
     public static opposite(direction) {
         return direction + 2 % 4;
     }
+
+    public static getOppositeDirection(direction: Direction) {
+        return (direction + 2) % 4;
+    }
 }
