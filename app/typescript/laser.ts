@@ -1,3 +1,9 @@
-﻿class laser {
-    constructor(public position: Vector2, public orientation: Direction)
+﻿class Laser {
+
+    constructor(public position: BoardPosition, public facingDir: Direction) {
+    }
+
+    public fire() {
+
+    }
 }
