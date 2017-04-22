@@ -17,6 +17,11 @@
         this.loadBoard();
     }
 
+    private loadBoard() {
+
+        // TODO: Actually load and store the lasers
+    }
+
     public addRobot(newRobot: Robot) {
         this.robots.push(newRobot);
     }
@@ -28,13 +33,17 @@
         }
     }
 
-    private loadBoard() {
-        // TODO: Actually load and store the lasers
+    public executeBoardElements() {
+        // TODO:
     }
 
     public fireLasers() {
         for (let laser of this.lasers) {
             laser.fire();
         }
+    }
+
+    public touchCheckpoints() {
+        // TODO:
     }
 }
