@@ -74,22 +74,23 @@ class Board {
 
     protected attemptMoveRobot(robot: Robot, direction: Direction) {
         if (this.hasObstacleInDirection(robot.position, direction)) {
-            throw new Error("Cannot move robot! Obstacle in the way.");
+            return false;
         }
 
         let newPosition = robot.position.getAdjacentPosition(direction);
         if (!this.isPositionOnBoard(newPosition) || this.getTileType(newPosition) == "Pit") {
             robot.removeFromBoard();
-            return;
+            return true;
         }
 
         for (let otherRobot of this.robots) {
             if (otherRobot.position.x == newPosition.x && otherRobot.position.y == newPosition.y) {
-                try {
-                    this.attemptMoveRobot(otherRobot, direction);
+                if (this.attemptMoveRobot(otherRobot, direction)) {
                     robot.position = newPosition;
-                } catch (e) {
-                    // continue processing moves
+                    return true;
+                }
+                else {
+                    return false;
                 }
             }
         }
@@ -118,6 +119,10 @@ class Board {
             && DirectionUtil.getDirection(tile.rotation) == direction) {
             return true;
         }
+        else if ((tile.index == 16 || tile.index == 17)
+            && DirectionUtil.getDirection(tile.rotation + 90) == direction) {
+            return true;
+        }
 
         return false;
     }
@@ -137,9 +142,9 @@ class Board {
         }
     }
 
-    public executeBoardElements() {
+    public executeBoardElements(phase: number) {
         this.runConveyorBelts();
-        this.runPushers();
+        this.runPushers(phase);
         this.runGears();
     }
 
@@ -147,8 +152,16 @@ class Board {
         // TODO:
     }
 
-    private runPushers() {
-        // TODO:
+    private runPushers(phase: number) {
+        for (let robot of this.robots) {
+            var tile: Phaser.Tile = this.map.getTile(robot.position.x, robot.position.y, "Wall Layer");
+            if (tile.index == 16 && phase % 2 == 1) {
+                this.attemptMoveRobot(robot, DirectionUtil.getDirection(tile.rotation + 90));
+            }
+            else if (tile.index == 17 && phase % 2 == 0) {
+                this.attemptMoveRobot(robot, DirectionUtil.getDirection(tile.rotation + 90));
+            }
+        }
     }
 
     private runGears() {
