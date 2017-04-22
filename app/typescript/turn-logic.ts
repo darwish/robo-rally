@@ -29,7 +29,7 @@
 
     private tryExecuteRobotMovement(robotMovement: RobotPhaseMovement) {
         if (!robotMovement.robot.isDead()) {
-
+            Board.Instance.runRobotProgram(robotMovement.robot, robotMovement.programCard);
         }
     }
 
