@@ -208,7 +208,9 @@ var Laser = (function () {
     };
     return Laser;
 }());
-/* globals Phaser io */
+/// <reference path="../../typings/phaser/phaser.comments.d.ts"/>
+/// <reference path="../../typings/jquery/jquery.d.ts"/>
+/// <reference path="../../typings/socket.io-client/socket.io-client.d.ts"/>
 var game, map;
 function preload() {
     game.load.baseURL = 'https://cdn.glitch.com/';
@@ -230,7 +232,7 @@ function loadGame(id) {
     if (!localStorage['Game_' + id])
         return null;
     var data = JSON.parse(localStorage['Game_' + id]);
-    io.emit('join', { id: id, name: data.name, isHost: data.isHost });
+    socket.emit('join', { id: id, name: data.name, isHost: data.isHost });
     // TODO: load state
     return data;
 }
