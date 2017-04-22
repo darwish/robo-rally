@@ -17,7 +17,7 @@
 
             this.board.executeBoardElements();
             this.board.fireLasers();
-            this.board.touchCheckpoints();
+            this.board.touchFlags();
         }
     }
 
