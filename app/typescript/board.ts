@@ -42,13 +42,6 @@ class Board {
         this.robots.push(newRobot);
     }
 
-    protected turnRobot(robot: Robot, quarterRotationsCW: number) {
-        robot.orientation = (robot.orientation + quarterRotationsCW) % 4;
-        if (robot.orientation < 0) {
-            robot.orientation += 4;
-        }
-    }
-
     protected moveRobot(robot: Robot, distance: number, direction: Direction) {
         if (distance < 0) {
             throw new Error("Cannot move negative distance!");
@@ -132,7 +125,7 @@ class Board {
     public runRobotProgram(robot: Robot, programAction: ProgramCard) {
         switch (programAction.type) {
             case ProgramCardType.ROTATE:
-                this.turnRobot(robot, programAction.distance);
+                robot.rotate(programAction.distance);
                 break;
             case ProgramCardType.MOVE:
                 let orientation = robot.orientation;
@@ -160,7 +153,13 @@ class Board {
 
     private runGears() {
         for (let robot of this.robots) {
-
+            var tile: Phaser.Tile = this.map.getTile(robot.position.x, robot.position.y, "Floor Layer");
+            if (tile.index == 20) {
+                robot.rotate(-1);
+            }
+            else if (tile.index == 21) {
+                robot.rotate(1);
+            }
         }
     }
 
