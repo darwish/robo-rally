@@ -65,6 +65,7 @@ class Board {
     public getTileType(position: BoardPosition) {
         return '';
     }
+
     public isPositionOnBoard(position: BoardPosition) {
         if (position.x < this.map.width &&
             position.x >= 0 &&
@@ -115,6 +116,10 @@ class Board {
     public hasObstacleInDirection(tilePosition: BoardPosition, direction: Direction) {
 
         if (this.hasObstacleInDirectionInternal(tilePosition, direction)) {
+            return true;
+        }
+        else if (this.isPositionOnBoard(this.getAdjacentBoardPosition(tilePosition, direction))
+            && this.hasObstacleInDirectionInternal(this.getAdjacentBoardPosition(tilePosition, direction), DirectionUtil.opposite(direction))) {
             return true;
         }
 

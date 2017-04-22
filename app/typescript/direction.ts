@@ -14,4 +14,8 @@ class DirectionUtil {
 
         return angleInDegrees / 90 % 360;
     }
+
+    public static opposite(direction) {
+        return diretion + 2 % 4;
+    }
 }
