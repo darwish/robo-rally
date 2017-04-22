@@ -1,6 +1,5 @@
 app/public/*.js
 app/public/*.js.map
-!app/public/main.js
 !app/public/qrcode.min.js
 !app/public/style.css
 assets/
