@@ -1,18 +1,16 @@
 {
   "compilerOptions": {
     "noImplicitAny": false,
-    "module": "commonjs",
     "noEmitOnError": true,
     "removeComments": false,
+    "module": "system",
     "sourceMap": true,
     "target": "es5",
-    "outDir": "app/public"
+    "outFile": "app/public/main.js"
   },
-  "files": [
-    "app/node_modules/phaser/typescript/phaser.comments.d.ts"
-  ],
   "include": [
-    "app/typescript"
+    "app/typescript",
+    "typings/**.d.ts"
   ],
   "exclude": [
     "app/node_modules"
