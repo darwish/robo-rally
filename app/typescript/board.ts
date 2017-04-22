@@ -4,7 +4,7 @@
 
     public robots: Robot[];
 
-    constructor()
+    constructor(public map: Phaser.Tilemap)
     {
         if (Board.Instance != null) {
             throw new Error("Board singleton already exists!");

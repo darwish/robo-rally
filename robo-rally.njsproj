@@ -68,6 +68,7 @@
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="app\typescript\direction.ts" />
+    <TypeScriptCompile Include="app\typescript\laser.ts" />
     <TypeScriptCompile Include="app\typescript\option-card.ts" />
     <TypeScriptCompile Include="app\typescript\program-card-type.ts">
       <SubType>Code</SubType>
