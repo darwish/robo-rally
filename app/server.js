@@ -48,7 +48,7 @@ io.on('connection', function (socket) {
     });
 
     // The server should just be a dumb relay. Forward messages to other sockets in the same game.
-    var events = ['broadcastPlayers', 'dealtCards', 'submitTurn', 'powerDown', 'useOptionCard', 'gameSettings', 'gameState'];
+    var events = ['broadcastPlayers', 'gameStart', 'dealtCards', 'submitTurn', 'powerDown', 'useOptionCard', 'gameSettings', 'gameState'];
     for (let i = 0; i < events.length; i++) {
         socket.on(events[i], function (data) {
             data.sender = socket.id;
