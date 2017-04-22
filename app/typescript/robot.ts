@@ -43,4 +43,9 @@ class Robot {
             this.health += healingAmount;
         }
     }
+
+    public removeFromBoard() {
+        this.position.x = undefined;
+        this.position.y = undefined;
+    }
 }

@@ -52,13 +52,51 @@ class Board {
             throw new Error("Cannot move negatice distance!");
         }
         while (distance > 0) {
-            this.attemptMoveRobot(robot, direction);
             distance--;
+            try {
+                this.attemptMoveRobot(robot, direction);
+            } catch (e) {
+                // continue attempting to move, so we can animate each attempt
+            }
+            
         }
     }
 
-    protected attemptMoveRobot(robot: Robot, direction: Direction) {
+    public getTileType(position: BoardPosition) {
+        return '';
+    }
+    public isPositionOnBoard(position: BoardPosition) {
+        if (position.x < this.map.width &&
+            position.x >= 0 &&
+            position.y < this.map.height &&
+            position.y >= 0
+        ) {
+            return true;
+        }
+        return false;
+    }
 
+    protected attemptMoveRobot(robot: Robot, direction: Direction) {
+        if (this.hasObstacleInDirection(robot.position, direction)) {
+            throw new Error("Cannot move robot! Obstacle in the way.");
+        }
+
+        let newPosition = this.getAdjacentBoardPosition(robot.position, direction);
+        if (!this.isPositionOnBoard(newPosition) || this.getTileType(newPosition) == "Pit") {
+            robot.removeFromBoard();
+            return;
+        }
+
+        for (let otherRobot of this.robots) {
+            if (otherRobot.position.x == newPosition.x && otherRobot.position.y == newPosition.y) {
+                try {
+                    this.attemptMoveRobot(otherRobot, direction);
+                    robot.position = newPosition;
+                } catch (e) {
+                    // continue processing moves
+                }
+            }
+        }
     }
 
     public getAdjacentBoardPosition(fromPosition: BoardPosition, direction: Direction) {
