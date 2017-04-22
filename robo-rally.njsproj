@@ -40,7 +40,6 @@
     <Content Include="app\README.md" />
     <Compile Include="app\server.js" />
     <Content Include="app\public\style.css" />
-    <Compile Include="app\public\main.js" />
     <Compile Include="app\public\qrcode.min.js" />
     <Content Include="tsconfig.json">
       <SubType>Code</SubType>
@@ -64,9 +63,12 @@
     <TypeScriptCompile Include="app\typescript\board-logic.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
+    <TypeScriptCompile Include="app\typescript\board-position.ts" />
     <TypeScriptCompile Include="app\typescript\board.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
+    <TypeScriptCompile Include="app\typescript\direction.ts" />
+    <TypeScriptCompile Include="app\typescript\main.ts" />
     <TypeScriptCompile Include="app\typescript\program-card.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
