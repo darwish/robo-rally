@@ -6,6 +6,8 @@ class Robot {
     public availableProgramCards: ProgramCard[];
     public registeredProgramCards: ProgramCard[];
 
+    readonly maxHealth = 9;
+
     constructor(public position: BoardPosition, public orientation: Direction, public lives: number, public health?: number) {
         if (health == undefined) {
             this.health = 9;
@@ -31,10 +33,11 @@ class Robot {
         }
     }
 
-    public turn(quarterRotationsCW: number) {
-        this.orientation = (this.orientation + quarterRotationsCW) % 4;
-        if (this.orientation < 0) {
-            this.orientation += 4;
+    public healDamage(healingAmount: number) {
+        if (this.health + healingAmount >= this.maxHealth) {
+            this.health = this.maxHealth;
+        } else {
+            this.health += 1;
         }
     }
 }
