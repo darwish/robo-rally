@@ -18,8 +18,12 @@
     }
 
     private loadBoard() {
-
-        // TODO: Actually load and store the lasers
+        this.map.objects.forEach(object => {
+            if (object.type == "Laser") {
+                var newLaser = new Laser(new BoardPosition(object.x, object.y), DirectionUtil.getDirection(object.rotation), object.count);
+                this.lasers.push(newLaser);
+            }
+        });
     }
 
     public addRobot(newRobot: Robot) {
