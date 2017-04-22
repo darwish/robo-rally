@@ -90,9 +90,27 @@ var Board = (function () {
                 return new BoardPosition(fromPosition.x - 1, fromPosition.y);
         }
     };
-    Board.prototype.hasObstacleInDirection = function (fromPosition, direction) {
-        // figure out if there are any permanent obstacles preventing progress in a certain direction
-        return true;
+    Board.prototype.hasObstacleInDirection = function (tilePosition, direction) {
+        if (this.hasObstacleInDirectionInternal(tilePosition, direction)) {
+            return true;
+        }
+        else if (this.isPositionOnBoard(this.getAdjacentBoardPosition(tilePosition, direction))
+            && this.hasObstacleInDirectionInternal(this.getAdjacentBoardPosition(tilePosition, direction), DirectionUtil.opposite(direction))) {
+            return true;
+        }
+        return false;
+    };
+    Board.prototype.hasObstacleInDirectionInternal = function (tilePosition, direction) {
+        var tile = this.map.getTile(tilePosition.x, tilePosition.y, "Wall Layer");
+        if (tile.index == 12
+            && (DirectionUtil.getDirection(tile.rotation) == direction || DirectionUtil.getDirection(tile.rotation + 90) == direction)) {
+            return true;
+        }
+        else if (tile.index == 13
+            && DirectionUtil.getDirection(tile.rotation) == direction) {
+            return true;
+        }
+        return false;
     };
     Board.prototype.runRobotProgram = function (robot, programAction) {
         switch (programAction.type) {
@@ -150,7 +168,13 @@ var DirectionUtil = (function () {
     function DirectionUtil() {
     }
     DirectionUtil.getDirection = function (angleInDegrees) {
-        return angleInDegrees / 90;
+        while (angleInDegrees < 0) {
+            angleInDegrees += 360;
+        }
+        return angleInDegrees / 90 % 360;
+    };
+    DirectionUtil.opposite = function (direction) {
+        return direction + 2 % 4;
     };
     return DirectionUtil;
 }());
