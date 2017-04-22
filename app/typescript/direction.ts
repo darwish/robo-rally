@@ -16,6 +16,6 @@ class DirectionUtil {
     }
 
     public static opposite(direction) {
-        return diretion + 2 % 4;
+        return direction + 2 % 4;
     }
 }
