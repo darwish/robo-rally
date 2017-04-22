@@ -16,4 +16,11 @@
     public addRobot(newRobot: Robot) {
         this.robots.push(newRobot);
     }
+
+    public turn(robot: Robot, quarterRotationsCW: number) {
+        robot.orientation = (robot.orientation + quarterRotationsCW) % 4;
+        if (robot.orientation < 0) {
+            robot.orientation += 4;
+        }
+    }
 }
