@@ -68,11 +68,14 @@
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="app\typescript\direction.ts" />
-    <TypeScriptCompile Include="app\typescript\main.ts" />
+    <TypeScriptCompile Include="app\typescript\option-card.ts" />
+    <TypeScriptCompile Include="app\typescript\program-card-type.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="app\typescript\program-card.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="app\typescript\robot-phase.ts" />
+    <TypeScriptCompile Include="app\typescript\robot-phase-action.ts" />
     <TypeScriptCompile Include="app\typescript\robot-turn.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
