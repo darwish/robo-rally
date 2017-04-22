@@ -51,7 +51,7 @@ class Board {
 
     protected moveRobot(robot: Robot, distance: number, direction: Direction) {
         if (distance < 0) {
-            throw new Error("Cannot move negatice distance!");
+            throw new Error("Cannot move negative distance!");
         }
         while (distance > 0) {
             distance--;
@@ -145,7 +145,23 @@ class Board {
     }
 
     public executeBoardElements() {
+        this.runConveyorBelts();
+        this.runPushers();
+        this.runGears();
+    }
+
+    private runConveyorBelts() {
         // TODO:
+    }
+
+    private runPushers() {
+        // TODO:
+    }
+
+    private runGears() {
+        for (let robot of this.robots) {
+
+        }
     }
 
     public fireLasers() {
