@@ -1,3 +1,22 @@
+var BoardPosition = (function () {
+    function BoardPosition(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+    BoardPosition.prototype.getAdjacentPosition = function (direction) {
+        switch (direction) {
+            case Direction.N:
+                return new BoardPosition(this.x, this.y + 1);
+            case Direction.E:
+                return new BoardPosition(this.x + 1, this.y);
+            case Direction.S:
+                return new BoardPosition(this.x, this.y - 1);
+            case Direction.N:
+                return new BoardPosition(this.x - 1, this.y);
+        }
+    };
+    return BoardPosition;
+}());
 var Board = (function () {
     function Board(map) {
         this.map = map;
@@ -42,6 +61,7 @@ var Board = (function () {
                 this.attemptMoveRobot(robot, direction);
             }
             catch (e) {
+                // continue attempting to move, so we can animate each attempt
             }
         }
     };
@@ -74,6 +94,7 @@ var Board = (function () {
                     robot.position = newPosition;
                 }
                 catch (e) {
+                    // continue processing moves
                 }
             }
         }
@@ -137,159 +158,6 @@ var Board = (function () {
     };
     return Board;
 }());
-var BoardPosition = (function () {
-    function BoardPosition(x, y) {
-        this.x = x;
-        this.y = y;
-    }
-    BoardPosition.prototype.getAdjacentPosition = function (direction) {
-        switch (direction) {
-            case Direction.N:
-                return new BoardPosition(this.x, this.y + 1);
-            case Direction.E:
-                return new BoardPosition(this.x + 1, this.y);
-            case Direction.S:
-                return new BoardPosition(this.x, this.y - 1);
-            case Direction.N:
-                return new BoardPosition(this.x - 1, this.y);
-        }
-    };
-    return BoardPosition;
-}());
-var CardDeck = (function () {
-    function CardDeck(cards) {
-        this.cards = cards;
-    }
-    CardDeck.newDeck = function () {
-        var cards = [];
-        var priority = 10;
-        for (var i = 0; i < 6; i++) {
-            cards.push(new ProgramCard(ProgramCardType.ROTATE, 2, priority));
-            priority += 10;
-        }
-        for (var i = 0; i < 36; i++) {
-            var direction = i % 2 == 0 ? -1 : 1;
-            cards.push(new ProgramCard(ProgramCardType.ROTATE, direction, priority));
-            priority += 10;
-        }
-        for (var i = 0; i < 6; i++) {
-            cards.push(new ProgramCard(ProgramCardType.MOVE, -1, priority));
-            priority += 10;
-        }
-        for (var i = 0; i < 18; i++) {
-            cards.push(new ProgramCard(ProgramCardType.MOVE, 1, priority));
-            priority += 10;
-        }
-        for (var i = 0; i < 12; i++) {
-            cards.push(new ProgramCard(ProgramCardType.MOVE, 2, priority));
-            priority += 10;
-        }
-        for (var i = 0; i < 6; i++) {
-            cards.push(new ProgramCard(ProgramCardType.MOVE, 3, priority));
-            priority += 10;
-        }
-        return new CardDeck(cards);
-    };
-    CardDeck.prototype.deal = function (handSizes) {
-        this.shuffle();
-        var hands = [];
-        for (var _i = 0, handSizes_1 = handSizes; _i < handSizes_1.length; _i++) {
-            var size = handSizes_1[_i];
-            hands.push(this.cards.splice(0, size));
-        }
-        return hands;
-    };
-    // From https://basarat.gitbooks.io/algorithms/content/docs/shuffling.html
-    CardDeck.prototype.shuffle = function () {
-        for (var i = 0; i < this.cards.length; i++) {
-            // choose a random not-yet-placed item to place there
-            // must be an item AFTER the current item, because the stuff
-            // before has all already been placed
-            var randomChoiceIndex = this.getRandom(i, this.cards.length - 1);
-            // place our random choice in the spot by swapping
-            _a = [this.cards[randomChoiceIndex], this.cards[i]], this.cards[i] = _a[0], this.cards[randomChoiceIndex] = _a[1];
-        }
-        var _a;
-    };
-    CardDeck.prototype.getRandom = function (low, high) {
-        return low + Math.floor(Math.random() * (high - low + 1));
-    };
-    return CardDeck;
-}());
-var ClientGame = (function () {
-    function ClientGame(gameId) {
-        this.gameId = gameId;
-        this.getOrCreateClientId();
-        this.gameData = {
-            gameId: gameId,
-            hostId: null,
-            playerIds: []
-        };
-    }
-    ClientGame.prototype.setSelfAsHost = function () {
-        this.gameData.hostId = this.clientId;
-        this.addPlayer(this.clientId);
-        this.saveGame();
-    };
-    ClientGame.prototype.isHost = function () {
-        return this.gameData.hostId == this.clientId;
-    };
-    ClientGame.prototype.addPlayer = function (playerId) {
-        if (this.gameData.playerIds.indexOf(playerId) == -1) {
-            this.gameData.playerIds.push(playerId);
-            this.saveGame();
-        }
-    };
-    ClientGame.prototype.getPlayers = function () {
-        return this.gameData.playerIds;
-    };
-    ClientGame.prototype.setPlayers = function (players) {
-        this.gameData.playerIds = players;
-        this.saveGame();
-    };
-    ClientGame.prototype.saveGame = function () {
-        localStorage['Game_' + this.gameId] = JSON.stringify(this.gameData);
-    };
-    ClientGame.prototype.loadOrJoin = function () {
-        if (!this.loadGame()) {
-            this.joinGame();
-        }
-    };
-    ClientGame.prototype.loadGame = function () {
-        if (!localStorage['Game_' + this.gameId]) {
-            return false;
-        }
-        this.gameData = JSON.parse(localStorage['Game_' + this.gameId]);
-        socket.emit('join', { gameId: this.gameId, clientId: this.clientId });
-        // TODO: load state
-        return true;
-    };
-    ClientGame.prototype.joinGame = function () {
-        socket.emit('join', { gameId: this.gameId, clientId: this.clientId });
-    };
-    ClientGame.prototype.getOrCreateClientId = function () {
-        if ('clientId' in localStorage) {
-            this.clientId = localStorage['clientId'];
-        }
-        else {
-            this.clientId = localStorage['clientId'] = Guid.newGuid();
-        }
-    };
-    return ClientGame;
-}());
-var ClientUI = (function () {
-    function ClientUI() {
-        this.state = ClientState.GAME_PENDING;
-    }
-    return ClientUI;
-}());
-var ClientState;
-(function (ClientState) {
-    ClientState[ClientState["GAME_PENDING"] = 0] = "GAME_PENDING";
-    ClientState[ClientState["PROGRAMMING_REGISTERS"] = 1] = "PROGRAMMING_REGISTERS";
-    ClientState[ClientState["EXECUTING_REGISTERS"] = 2] = "EXECUTING_REGISTERS";
-    ClientState[ClientState["CLEAN_UP"] = 3] = "CLEAN_UP";
-})(ClientState || (ClientState = {}));
 var Direction;
 (function (Direction) {
     // increasing CW from North
@@ -308,9 +176,6 @@ var DirectionUtil = (function () {
         return angleInDegrees / 90 % 360;
     };
     DirectionUtil.opposite = function (direction) {
-        return direction + 2 % 4;
-    };
-    DirectionUtil.getOppositeDirection = function (direction) {
         return (direction + 2) % 4;
     };
     return DirectionUtil;
@@ -325,22 +190,12 @@ var Flag = (function () {
             robot.lastFlagOrder = this.order;
         }
         if (robot.lastFlagOrder >= Flag.highestOrder) {
+            // TODO: This robot wins; game over
         }
     };
     return Flag;
 }());
 Flag.highestOrder = 0;
-var Guid = (function () {
-    function Guid() {
-    }
-    Guid.newGuid = function () {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-        });
-    };
-    return Guid;
-}());
 var Laser = (function () {
     function Laser(position, facingDirection, damagePower) {
         this.position = position;
@@ -479,6 +334,11 @@ var OptionCard = (function () {
     }
     return OptionCard;
 }());
+var ProgramCardType;
+(function (ProgramCardType) {
+    ProgramCardType[ProgramCardType["MOVE"] = 0] = "MOVE";
+    ProgramCardType[ProgramCardType["ROTATE"] = 1] = "ROTATE";
+})(ProgramCardType || (ProgramCardType = {}));
 var ProgramCard = (function () {
     function ProgramCard(type, distance, priority) {
         this.type = type;
@@ -487,11 +347,20 @@ var ProgramCard = (function () {
     }
     return ProgramCard;
 }());
-var ProgramCardType;
-(function (ProgramCardType) {
-    ProgramCardType[ProgramCardType["MOVE"] = 0] = "MOVE";
-    ProgramCardType[ProgramCardType["ROTATE"] = 1] = "ROTATE";
-})(ProgramCardType || (ProgramCardType = {}));
+var RobotPhaseMovement = (function () {
+    function RobotPhaseMovement(robot, programCard) {
+        this.robot = robot;
+        this.programCard = programCard;
+    }
+    return RobotPhaseMovement;
+}());
+var RobotTurn = (function () {
+    function RobotTurn(robot, programCards) {
+        this.robot = robot;
+        this.programCards = programCards;
+    }
+    return RobotTurn;
+}());
 var Robot = (function () {
     function Robot(position, orientation, lives, health) {
         this.position = position;
@@ -553,20 +422,6 @@ var Robot = (function () {
         this.position.y = undefined;
     };
     return Robot;
-}());
-var RobotPhaseMovement = (function () {
-    function RobotPhaseMovement(robot, programCard) {
-        this.robot = robot;
-        this.programCard = programCard;
-    }
-    return RobotPhaseMovement;
-}());
-var RobotTurn = (function () {
-    function RobotTurn(robot, programCards) {
-        this.robot = robot;
-        this.programCards = programCards;
-    }
-    return RobotTurn;
 }());
 var TurnLogic = (function () {
     function TurnLogic() {
