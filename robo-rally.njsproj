@@ -75,7 +75,7 @@
     <TypeScriptCompile Include="app\typescript\program-card.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="app\typescript\robot-phase-action.ts" />
+    <TypeScriptCompile Include="app\typescript\robot-phase-movement.ts" />
     <TypeScriptCompile Include="app\typescript\robot-turn.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
