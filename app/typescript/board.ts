@@ -21,12 +21,17 @@ class Board {
     private loadBoard() {
 
         for (let object of this.map.objects) {
+
+            var x = Phaser.Math.snapToFloor(Math.floor(object.x), this.map.tileWidth);
+            var y = Phaser.Math.snapToFloor(Math.floor(object.y), this.map.tileHeight);
+            var position = new BoardPosition(x, y);
+
             if (object.type == "Laser") {
-                var newLaser = new Laser(new BoardPosition(object.x, object.y), DirectionUtil.getDirection(object.rotation), object.count);
+                var newLaser = new Laser(position, DirectionUtil.getDirection(object.rotation), object.count);
                 this.lasers.push(newLaser);
             }
             else if (object.type == "Flag") {
-                var newFlag = new Flag(new BoardPosition(object.x, object.y), object.order);
+                var newFlag = new Flag(position, object.order);
                 this.flags.push(newFlag);
 
                 if (newFlag.order > Flag.highestOrder) {
@@ -187,6 +192,10 @@ class Board {
     private runPushers(phase: number) {
         for (let robot of this.robots) {
             var tile: Phaser.Tile = this.map.getTile(robot.position.x, robot.position.y, "Wall Layer");
+            if (tile == null) {
+                continue;
+            }
+
             if (tile.index == 16 && phase % 2 == 1) {
                 this.attemptMoveRobot(robot, DirectionUtil.getDirection(tile.rotation + 90));
             }

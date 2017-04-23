@@ -39,7 +39,7 @@
                     {
                      "Count":"int"
                     },
-                 "rotation":90,
+                 "rotation":0,
                  "type":"Laser",
                  "visible":true,
                  "width":0,
@@ -58,7 +58,7 @@
                     {
                      "Count":"int"
                     },
-                 "rotation":90,
+                 "rotation":0,
                  "type":"Laser",
                  "visible":true,
                  "width":0,
@@ -77,7 +77,7 @@
                     {
                      "Count":"int"
                     },
-                 "rotation":0,
+                 "rotation":90,
                  "type":"Laser",
                  "visible":true,
                  "width":0,
@@ -96,12 +96,69 @@
                     {
                      "Count":"int"
                     },
-                 "rotation":0,
+                 "rotation":90,
                  "type":"Laser",
                  "visible":true,
                  "width":0,
                  "x":550,
                  "y":638
+                }, 
+                {
+                 "height":0,
+                 "id":19,
+                 "name":"Flag1",
+                 "properties":
+                    {
+                     "Order":1
+                    },
+                 "propertytypes":
+                    {
+                     "Order":"int"
+                    },
+                 "rotation":0,
+                 "type":"Flag",
+                 "visible":true,
+                 "width":0,
+                 "x":260,
+                 "y":560
+                }, 
+                {
+                 "height":0,
+                 "id":24,
+                 "name":"Flag2",
+                 "properties":
+                    {
+                     "Order":2
+                    },
+                 "propertytypes":
+                    {
+                     "Order":"int"
+                    },
+                 "rotation":0,
+                 "type":"Flag",
+                 "visible":true,
+                 "width":0,
+                 "x":634.666666666667,
+                 "y":190.666666666667
+                }, 
+                {
+                 "height":0,
+                 "id":25,
+                 "name":"Flag3",
+                 "properties":
+                    {
+                     "Order":3
+                    },
+                 "propertytypes":
+                    {
+                     "Order":"int"
+                    },
+                 "rotation":0,
+                 "type":"Flag",
+                 "visible":true,
+                 "width":0,
+                 "x":710.666666666667,
+                 "y":706.666666666667
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -110,7 +167,7 @@
          "x":0,
          "y":0
         }],
- "nextobjectid":14,
+ "nextobjectid":26,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tileheight":75,
@@ -118,7 +175,7 @@
         {
          "columns":4,
          "firstgid":1,
-         "image":"Spritesheet Small.png",
+         "image":"..\/images\/Spritesheet Small.png",
          "imageheight":450,
          "imagewidth":300,
          "margin":0,
