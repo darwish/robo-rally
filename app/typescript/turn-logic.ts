@@ -26,22 +26,22 @@ class TurnLogic {
         if (phaserGame.time.now >= this.nextTurnPhaseStepTime) {
             if (this.turnState == TurnState.RobotMovement) {
                 this.runNextTurnPhase_RobotMovements();
-                this.nextTurnPhaseStepTime = phaserGame.time.now + 1500;
+                this.nextTurnPhaseStepTime = phaserGame.time.now + 1000;
                 this.turnState = TurnState.BoardMovement;
             }
             else if (this.turnState == TurnState.BoardMovement) {
                 Board.Instance.executeBoardElements(this.phaseNumber);
-                this.nextTurnPhaseStepTime = phaserGame.time.now + 1500;
+                this.nextTurnPhaseStepTime = phaserGame.time.now + 1000;
                 this.turnState = TurnState.Lasers;
             }
             else if (this.turnState == TurnState.Lasers) {
                 Board.Instance.fireLasers();
-                this.nextTurnPhaseStepTime = phaserGame.time.now + 1500;
+                this.nextTurnPhaseStepTime = phaserGame.time.now + 1000;
                 this.turnState = TurnState.Flags;
             }
             else if (this.turnState == TurnState.Flags) {
                 Board.Instance.touchFlags();
-                this.nextTurnPhaseStepTime = phaserGame.time.now + 1500;
+                this.nextTurnPhaseStepTime = phaserGame.time.now + 1000;
                 this.turnState = TurnState.RobotMovement;
                 this.phaseNumber++;
             }

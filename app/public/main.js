@@ -942,7 +942,7 @@ var Robot = (function () {
     }
     Robot.prototype.rotate = function (quarterRotationsCW) {
         this._orientation = DirectionUtil.clamp(this._orientation + quarterRotationsCW);
-        phaserGame.add.tween(this.sprite).to({ angle: DirectionUtil.toDegrees(this._orientation) }, 1000, Phaser.Easing.Cubic.InOut, true);
+        phaserGame.add.tween(this.sprite).to({ angle: DirectionUtil.toDegrees(this._orientation) }, 750, Phaser.Easing.Cubic.InOut, true);
     };
     Object.defineProperty(Robot.prototype, "orientation", {
         get: function () {
@@ -971,7 +971,7 @@ var Robot = (function () {
         set: function (val) {
             this._position = val.clone();
             var pixelPos = val.toCenterPixelPosition();
-            phaserGame.add.tween(this.sprite).to({ x: pixelPos.x, y: pixelPos.y }, 1000, Phaser.Easing.Cubic.InOut, true);
+            phaserGame.add.tween(this.sprite).to({ x: pixelPos.x, y: pixelPos.y }, 750, Phaser.Easing.Cubic.InOut, true);
             this.sprite.visible = true;
         },
         enumerable: true,
@@ -1073,22 +1073,22 @@ var TurnLogic = (function () {
         if (phaserGame.time.now >= this.nextTurnPhaseStepTime) {
             if (this.turnState == TurnState.RobotMovement) {
                 this.runNextTurnPhase_RobotMovements();
-                this.nextTurnPhaseStepTime = phaserGame.time.now + 1500;
+                this.nextTurnPhaseStepTime = phaserGame.time.now + 1000;
                 this.turnState = TurnState.BoardMovement;
             }
             else if (this.turnState == TurnState.BoardMovement) {
                 Board.Instance.executeBoardElements(this.phaseNumber);
-                this.nextTurnPhaseStepTime = phaserGame.time.now + 1500;
+                this.nextTurnPhaseStepTime = phaserGame.time.now + 1000;
                 this.turnState = TurnState.Lasers;
             }
             else if (this.turnState == TurnState.Lasers) {
                 Board.Instance.fireLasers();
-                this.nextTurnPhaseStepTime = phaserGame.time.now + 1500;
+                this.nextTurnPhaseStepTime = phaserGame.time.now + 1000;
                 this.turnState = TurnState.Flags;
             }
             else if (this.turnState == TurnState.Flags) {
                 Board.Instance.touchFlags();
-                this.nextTurnPhaseStepTime = phaserGame.time.now + 1500;
+                this.nextTurnPhaseStepTime = phaserGame.time.now + 1000;
                 this.turnState = TurnState.RobotMovement;
                 this.phaseNumber++;
             }
