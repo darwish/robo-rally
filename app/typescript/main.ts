@@ -49,8 +49,7 @@ class Main {
     }
 
     public update() {
-        for (let i = 0; i < board.robots.length; i++)
-            board.robots[i].update();
+
     }
 
     public waitForPlayers() {

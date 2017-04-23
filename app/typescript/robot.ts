@@ -118,8 +118,4 @@ class Robot {
         this._position.y = undefined;
         this.sprite.visible = false;
     }
-
-    public update() {
-        this.sprite.angle += 1;
-    }
 }

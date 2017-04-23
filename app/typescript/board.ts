@@ -20,10 +20,10 @@ class Board {
 
     private loadBoard() {
 
-        for (let object of this.map.objects) {
+        for (let object of this.map.objects['Object Layer']) {
 
-            var x = Phaser.Math.snapToFloor(Math.floor(object.x), this.map.tileWidth);
-            var y = Phaser.Math.snapToFloor(Math.floor(object.y), this.map.tileHeight);
+            var x = Phaser.Math.snapToFloor(object.x, this.map.tileWidth) / this.map.tileWidth;
+            var y = Phaser.Math.snapToFloor(object.y, this.map.tileHeight) / this.map.tileHeight;
             var position = new BoardPosition(x, y);
 
             if (object.type == "Laser") {

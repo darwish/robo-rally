@@ -1,6 +1,10 @@
 ﻿class Laser {
+    public sprite: Phaser.Sprite;
 
     constructor(public position: BoardPosition, public facingDirection: Direction, public damagePower: number) {
+        let pixelPos = position.toPixelPosition();
+        this.sprite = phaserGame.add.sprite(pixelPos.x, pixelPos.y, 'laser-emitter');
+        this.sprite.angle = DirectionUtil.toDegrees(facingDirection);
     }
 
     public fire() {
