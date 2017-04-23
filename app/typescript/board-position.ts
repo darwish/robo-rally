@@ -22,7 +22,7 @@ class BoardPosition extends Phaser.Point {
     /** Returns the top left of the tile in pixel coordinates. */
     public toPixelPosition() {
         let tile = map.getTile(this.x, this.y);
-        return new Phaser.Point(tile.x, tile.y);
+        return new Phaser.Point(tile.worldX, tile.worldY);
     }
 
     public clone() {
