@@ -2,7 +2,7 @@
 /// <reference path="../../typings/jquery/jquery.d.ts"/>
 /// <reference path="../../typings/socket.io-client/socket.io-client.d.ts"/>
 
-
+declare var window: Window;
 declare var QRCode: any;
 declare var clientGame: ClientGame;
 declare var socket: SocketIOClient.Socket;
@@ -72,6 +72,9 @@ class Main {
     }
 
     public startGame() {
+        $('.startGame').addClass("hidden");
+        $('.quitGame').removeClass("hidden");
+
         socket.off('joined');
         socket.off('broadcastPlayers');
 
@@ -86,6 +89,10 @@ class Main {
         socket.emit('dealtCards', handData);
 
         this.showCards(hands[0]);
+    }
+
+    public quitGame() {
+        window.location.href = "/";
     }
 
     public waitForCards() {
@@ -195,6 +202,8 @@ function initRoboRally() {
         main.waitForPlayers();
     });
 
+    $('.startGame').click(() => main.startGame());
+    $('.quitGame').click(() => main.quitGame());
     $('.cardContainer').on('click', '.cardChoice', function () { main.chooseCard(this); });
     $('.submitCards').click(() => main.submitSelectedCards());
 }
