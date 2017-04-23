@@ -7,7 +7,7 @@ declare var QRCode: any;
 declare var clientGame: ClientGame;
 declare var socket: SocketIOClient.Socket;
 
-var phaserGame: Phaser.Game, map: Phaser.Tilemap, board:Board;
+var phaserGame: Phaser.Game, map: Phaser.Tilemap, board: Board;
 
 class Main {
     public globalCardDeck: CardDeck;
@@ -194,22 +194,18 @@ function initRoboRally() {
     clientGame = new ClientGame(gameId);
     socket = io();
 
-    $(window).load(function () {
-        $('.code').text(gameId)
-        $('.gameInfo').show();
-        new QRCode($(".qrcode")[0], { text: "https://robo-rally.glitch.me/g/" + gameId, width: 66, height: 66 });
+    $('.code').text(gameId)
+    $('.gameInfo').show();
+    new QRCode($(".qrcode")[0], { text: "https://robo-rally.glitch.me/g/" + gameId, width: 66, height: 66 });
 
-
-
-        if (!clientGame.isHost()) {
-            clientGame.loadOrJoin();
-        }
-        if (clientGame.isHost()) {
-            $('.startGame').removeClass('hidden').click(() => main.startGame());
-            clientGame.addPlayer(clientGame.clientId);
-        }
-        main.waitForPlayers();
-    });
+    if (!clientGame.isHost()) {
+        clientGame.loadOrJoin();
+    }
+    if (clientGame.isHost()) {
+        $('.startGame').removeClass('hidden').click(() => main.startGame());
+        clientGame.addPlayer(clientGame.clientId);
+    }
+    main.waitForPlayers();
 
     $('.startGame').click(() => main.startGame());
     $('.quitGame').click(() => main.quitGame());
