@@ -10,7 +10,7 @@ class Robot {
 
     readonly maxHealth = 10;
 
-    constructor(public position: BoardPosition, public orientation: Direction, public lives: number, public health?: number) {
+    constructor(public playerID: string, public position: BoardPosition, public orientation: Direction, public lives: number, public health?: number) {
         if (health == undefined) {
             this.health = this.maxHealth;
         }
@@ -21,6 +21,10 @@ class Robot {
         this.availableProgramCards = [];
         this.registeredProgramCards = [];
         this.lastFlagOrder = 0;
+    }
+
+    public rotate(quarterRotationsCW: number) {
+        this.orientation = DirectionUtil.clamp(this.orientation + quarterRotationsCW);
     }
 
     public isDead() {

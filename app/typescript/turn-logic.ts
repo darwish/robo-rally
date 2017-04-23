@@ -13,7 +13,7 @@
 
             this.runRobotMovements(robotMovements);
 
-            Board.Instance.executeBoardElements();
+            Board.Instance.executeBoardElements(i);
             Board.Instance.fireLasers();
             Board.Instance.touchFlags();
         }
