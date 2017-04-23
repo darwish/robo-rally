@@ -66,8 +66,6 @@ class Main {
             }
         }
     }
-    
-        }
 
     public render() {
         for (let laser of board.lasers)
