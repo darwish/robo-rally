@@ -23,7 +23,6 @@ class Main {
     public playerSubmittedCards: { [key: string]: ProgramCard[]; } = {};
 
     private turnLogic: TurnLogic = null;
-    private nextTurnPhaseTime: number = 0;
 
     constructor() {
         this.globalCardDeck = CardDeck.newDeck();
@@ -60,9 +59,8 @@ class Main {
                 if (this.turnLogic.isDoneAllPhases()) {
                     this.startNewTurn();
                 }
-                else if (phaserGame.time.now > this.nextTurnPhaseTime) {
-                    this.turnLogic.runNextTurnPhase();
-                    this.nextTurnPhaseTime = phaserGame.time.now + 2000;
+                else {
+                    this.turnLogic.update();
                 }
             }
         }
