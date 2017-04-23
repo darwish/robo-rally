@@ -892,7 +892,7 @@ var Robot = (function () {
     }
     Robot.prototype.rotate = function (quarterRotationsCW) {
         this._orientation = DirectionUtil.clamp(this._orientation + quarterRotationsCW);
-        phaserGame.add.tween(this.sprite).to({ angle: DirectionUtil.toDegrees(this._orientation) }, 200, Phaser.Easing.Cubic.InOut);
+        phaserGame.add.tween(this.sprite).to({ angle: DirectionUtil.toDegrees(this._orientation) }, 200, Phaser.Easing.Cubic.InOut, true);
     };
     Object.defineProperty(Robot.prototype, "orientation", {
         get: function () {
@@ -921,7 +921,7 @@ var Robot = (function () {
         set: function (val) {
             this._position = val.clone();
             var pixelPos = val.toPixelPosition();
-            phaserGame.add.tween(this.sprite).to({ x: pixelPos.x, y: pixelPos.y }, 200, Phaser.Easing.Cubic.InOut);
+            phaserGame.add.tween(this.sprite).to({ x: pixelPos.x, y: pixelPos.y }, 200, Phaser.Easing.Cubic.InOut, true);
             this.sprite.visible = true;
         },
         enumerable: true,
