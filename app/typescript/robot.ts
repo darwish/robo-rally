@@ -20,11 +20,12 @@ class Robot {
         this.registeredProgramCards = [];
         this.lastFlagOrder = 0;
 
-        let pixelPos = _position.toPixelPosition();
+        let pixelPos = _position.toCenterPixelPosition();
         this.sprite = phaserGame.add.sprite(pixelPos.x, pixelPos.y, 'robots');
         this.sprite.frame = spriteIndex;
         this.sprite.maxHealth = this.maxHealth;
         this.sprite.health = health;
+        this.sprite.anchor.set(0.5);
     }
 
     public rotate(quarterRotationsCW: number) {
@@ -54,9 +55,17 @@ class Robot {
 
     set position(val: BoardPosition) {
         this._position = val.clone();
-        let pixelPos = val.toPixelPosition();
+        let pixelPos = val.toCenterPixelPosition();
         phaserGame.add.tween(this.sprite).to({ x: pixelPos.x, y: pixelPos.y }, 200, Phaser.Easing.Cubic.InOut, true);
         this.sprite.visible = true;
+    }
+
+    get x(): number {
+        return this._position.x;
+    }
+
+    get y(): number {
+        return this._position.y;
     }
 
     public isDead() {
@@ -108,5 +117,9 @@ class Robot {
         this._position.x = undefined;
         this._position.y = undefined;
         this.sprite.visible = false;
+    }
+
+    public update() {
+        this.sprite.angle += 1;
     }
 }

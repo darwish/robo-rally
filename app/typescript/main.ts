@@ -7,7 +7,7 @@ declare var QRCode: any;
 declare var clientGame: ClientGame;
 declare var socket: SocketIOClient.Socket;
 
-var phaserGame: Phaser.Game, map: Phaser.Tilemap, board: Board;
+var phaserGame: Phaser.Game, map: Phaser.Tilemap, board: Board, laserProjectile:Phaser.Weapon;
 
 class Main {
     public globalCardDeck: CardDeck;
@@ -36,13 +36,21 @@ class Main {
         map.addTilesetImage('RoboRallyOriginal', 'tileset');
         map.createLayer('Floor Layer').resizeWorld();
         map.createLayer('Wall Layer');
+        laserProjectile = phaserGame.add.weapon(-1, 'laser-projectile');
+        laserProjectile.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
+        laserProjectile.bulletSpeed = 400;
 
         board = new Board(map);
         initRoboRally();
     }
 
     public initGameObject() {
-        phaserGame = new Phaser.Game(900, 900, Phaser.AUTO, $('#gameContainer')[0], { preload: this.preload, create: this.create });
+        phaserGame = new Phaser.Game(900, 900, Phaser.AUTO, $('#gameContainer')[0], { preload: this.preload, create: this.create, update: this.update });
+    }
+
+    public update() {
+        for (let i = 0; i < board.robots.length; i++)
+            board.robots[i].update();
     }
 
     public waitForPlayers() {

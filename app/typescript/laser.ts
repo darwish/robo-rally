@@ -6,7 +6,7 @@
     public fire() {
         var robots = Board.Instance.robots;
 
-        var closestFacingRobot = null;
+        var closestFacingRobot:Robot = null;
         for (var i = 0; i < robots.length; i++) {
 
             if (this.facingDirection == Direction.E
@@ -39,6 +39,9 @@
             }
         }
 
-        closestFacingRobot.dealDamage(this.damagePower);
+        if (closestFacingRobot) {
+            closestFacingRobot.dealDamage(this.damagePower);
+            laserProjectile.fire(this.position, closestFacingRobot.position.x, closestFacingRobot.position.y);
+        }
     }
 }
