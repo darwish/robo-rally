@@ -23,9 +23,10 @@ class Main {
         phaserGame.load.baseURL = '/';
         //phaserGame.load.crossOrigin = 'anonymous';
 
-        phaserGame.load.image('laser', 'images/Laser%20Small.png');
+        phaserGame.load.image('laser-emitter', 'images/Laser%20Small.png');
         phaserGame.load.image('tileset', 'images/Spritesheet%20Small.png');
         phaserGame.load.image('player-card', 'images/player-card.png');
+        phaserGame.load.image('laser-projectile', 'images/laser-projectile.png');
         phaserGame.load.spritesheet('robots', 'images/robots.png', 75, 75);
         phaserGame.load.tilemap('tilemap', 'maps/Cross.json', null, Phaser.Tilemap.TILED_JSON);
     }
