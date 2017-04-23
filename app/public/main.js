@@ -16,10 +16,10 @@ var Board = (function () {
         this.loadBoard();
     }
     Board.prototype.loadBoard = function () {
-        for (var _i = 0, _a = this.map.objects; _i < _a.length; _i++) {
+        for (var _i = 0, _a = this.map.objects['Object Layer']; _i < _a.length; _i++) {
             var object = _a[_i];
-            var x = Phaser.Math.snapToFloor(Math.floor(object.x), this.map.tileWidth);
-            var y = Phaser.Math.snapToFloor(Math.floor(object.y), this.map.tileHeight);
+            var x = Phaser.Math.snapToFloor(object.x, this.map.tileWidth) / this.map.tileWidth;
+            var y = Phaser.Math.snapToFloor(object.y, this.map.tileHeight) / this.map.tileHeight;
             var position = new BoardPosition(x, y);
             if (object.type == "Laser") {
                 var newLaser = new Laser(position, DirectionUtil.getDirection(object.rotation), object.count);
@@ -35,8 +35,11 @@ var Board = (function () {
         }
     };
     Board.prototype.onPlayerJoined = function (playerID) {
-        var newRobot = new Robot(playerID.id, new BoardPosition(0, 0), 0, 3); // TODO: can't start all robots at the same place
+        var newRobot = new Robot(playerID.id, new BoardPosition(this.robots.length, 0), 0, 3); // TODO: can't start all robots at the same place
         this.robots.push(newRobot);
+    };
+    Board.prototype.clearRobots = function () {
+        this.robots = [];
     };
     Board.prototype.moveRobot = function (robot, distance, direction) {
         if (distance < 0) {
@@ -235,12 +238,12 @@ var BoardPosition = (function (_super) {
     /** Returns the center of the tile in pixel coordinates. */
     BoardPosition.prototype.toCenterPixelPosition = function () {
         var tile = map.getTile(this.x, this.y);
-        return new Phaser.Point(tile.centerX, tile.centerY);
+        return new Phaser.Point(tile.centerX + tile.worldX, tile.centerY + tile.worldY);
     };
     /** Returns the top left of the tile in pixel coordinates. */
     BoardPosition.prototype.toPixelPosition = function () {
         var tile = map.getTile(this.x, this.y);
-        return new Phaser.Point(tile.x, tile.y);
+        return new Phaser.Point(tile.worldX, tile.worldY);
     };
     BoardPosition.prototype.clone = function () {
         return new BoardPosition(this.x, this.y);
@@ -480,8 +483,8 @@ var ClientGame = (function () {
         if (!this.gameData.playerIds.some(function (x) { return x.id == playerId.id; })) {
             this.gameData.playerIds.push(playerId);
             this.saveGame();
+            Board.Instance.onPlayerJoined(playerId);
         }
-        Board.Instance.onPlayerJoined(playerId);
     };
     ClientGame.prototype.getPlayers = function () {
         return this.gameData.playerIds;
@@ -489,6 +492,11 @@ var ClientGame = (function () {
     ClientGame.prototype.setPlayers = function (players) {
         this.gameData.playerIds = players;
         this.saveGame();
+        Board.Instance.clearRobots();
+        for (var _i = 0, players_1 = players; _i < players_1.length; _i++) {
+            var playerId = players_1[_i];
+            Board.Instance.onPlayerJoined(playerId);
+        }
     };
     ClientGame.prototype.saveGame = function () {
         localStorage['Game_' + this.gameId] = JSON.stringify(this.gameData);
@@ -505,6 +513,14 @@ var ClientGame = (function () {
         this.gameData = JSON.parse(localStorage['Game_' + this.gameId]);
         socket.emit('join', { gameId: this.gameId, clientId: this.clientId });
         // TODO: load state
+        // Host loads from local storage, everyone else gets the broadcast when they join
+        if (this.isHost()) {
+            for (var _i = 0, _a = this.gameData.playerIds; _i < _a.length; _i++) {
+                var playerId = _a[_i];
+                Board.Instance.onPlayerJoined(playerId);
+            }
+            socket.emit('broadcastPlayers', this.getPlayers());
+        }
         return true;
     };
     ClientGame.prototype.joinGame = function () {
@@ -610,6 +626,9 @@ var Laser = (function () {
         this.position = position;
         this.facingDirection = facingDirection;
         this.damagePower = damagePower;
+        var pixelPos = position.toPixelPosition();
+        this.sprite = phaserGame.add.sprite(pixelPos.x, pixelPos.y, 'laser-emitter');
+        this.sprite.angle = DirectionUtil.toDegrees(facingDirection);
     }
     Laser.prototype.fire = function () {
         var robots = Board.Instance.robots;
@@ -640,26 +659,38 @@ var Laser = (function () {
                 closestFacingRobot = robots[i];
             }
         }
-        closestFacingRobot.dealDamage(this.damagePower);
+        if (closestFacingRobot) {
+            closestFacingRobot.dealDamage(this.damagePower);
+            laserProjectile.fire(this.position, closestFacingRobot.position.x, closestFacingRobot.position.y);
+        }
     };
     return Laser;
 }());
 /// <reference path="../../typings/phaser/phaser.comments.d.ts"/>
 /// <reference path="../../typings/jquery/jquery.d.ts"/>
 /// <reference path="../../typings/socket.io-client/socket.io-client.d.ts"/>
-var phaserGame, map, board;
+var phaserGame, map, board, laserProjectile;
+var GameState;
+(function (GameState) {
+    GameState[GameState["Initializing"] = 0] = "Initializing";
+    GameState[GameState["WaitingForPlayerInput"] = 1] = "WaitingForPlayerInput";
+    GameState[GameState["PlayingActions"] = 2] = "PlayingActions";
+})(GameState || (GameState = {}));
 var Main = (function () {
     function Main() {
+        this.gameState = GameState.Initializing;
         this.selectedCards = [];
         this.playerSubmittedCards = {};
+        this.turnLogic = null;
         this.globalCardDeck = CardDeck.newDeck();
     }
     Main.prototype.preload = function () {
         phaserGame.load.baseURL = '/';
         //phaserGame.load.crossOrigin = 'anonymous';
-        phaserGame.load.image('laser', 'images/Laser%20Small.png');
+        phaserGame.load.image('laser-emitter', 'images/Laser%20Small.png');
         phaserGame.load.image('tileset', 'images/Spritesheet%20Small.png');
         phaserGame.load.image('player-card', 'images/player-card.png');
+        phaserGame.load.image('laser-projectile', 'images/laser-projectile.png');
         phaserGame.load.spritesheet('robots', 'images/robots.png', 75, 75);
         phaserGame.load.tilemap('tilemap', 'maps/Cross.json', null, Phaser.Tilemap.TILED_JSON);
     };
@@ -668,11 +699,23 @@ var Main = (function () {
         map.addTilesetImage('RoboRallyOriginal', 'tileset');
         map.createLayer('Floor Layer').resizeWorld();
         map.createLayer('Wall Layer');
+        laserProjectile = phaserGame.add.weapon(-1, 'laser-projectile');
+        laserProjectile.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
+        laserProjectile.bulletSpeed = 400;
         board = new Board(map);
         initRoboRally();
     };
-    Main.prototype.initGameObject = function () {
-        phaserGame = new Phaser.Game(900, 900, Phaser.AUTO, $('#gameContainer')[0], { preload: this.preload, create: this.create });
+    Main.prototype.update = function () {
+        if (this.gameState == GameState.PlayingActions) {
+            if (this.turnLogic != null) {
+                if (this.turnLogic.isDoneAllPhases()) {
+                    this.startNewTurn();
+                }
+                else {
+                    this.turnLogic.update();
+                }
+            }
+        }
     };
     Main.prototype.waitForPlayers = function () {
         var _this = this;
@@ -707,6 +750,10 @@ var Main = (function () {
         $('.quitGame').removeClass("hidden");
         socket.off('joined');
         socket.off('broadcastPlayers');
+        this.startNewTurn();
+    };
+    Main.prototype.startNewTurn = function () {
+        this.gameState = GameState.WaitingForPlayerInput;
         var players = clientGame.getPlayers();
         var handSizes = players.map(function () { return 9; });
         var hands = this.dealCards(handSizes);
@@ -735,7 +782,7 @@ var Main = (function () {
         var _this = this;
         socket.on('submitTurn', function (submittedTurn) {
             _this.playerSubmittedCards[submittedTurn.playerId] = submittedTurn.cards.map(function (c) { return new ProgramCard(c.type, c.distance, c.priority); });
-            $('.playersList .playerItem').filter(function () { return $(this).data('player') == submittedTurn.playerId; }).addClass('submitted');
+            $('.playersList .playerItem').filter(function () { return $(this).data('player').id == submittedTurn.playerId; }).addClass('submitted');
             _this.checkForAllPlayerSubmissions();
         });
     };
@@ -777,14 +824,16 @@ var Main = (function () {
             return;
         }
         this.playerSubmittedCards[clientGame.clientId.id] = this.selectedCards;
-        this.checkForAllPlayerSubmissions();
+        $('.playersList .playerItem').filter(function () { return $(this).data('player').id == clientGame.clientId.id; }).addClass('submitted');
         socket.emit('submitTurn', {
-            playerId: clientGame.clientId,
+            playerId: clientGame.clientId.id,
             cards: this.selectedCards
         });
+        this.checkForAllPlayerSubmissions();
     };
     Main.prototype.checkForAllPlayerSubmissions = function () {
         if (Object.keys(this.playerSubmittedCards).length == clientGame.getPlayers().length) {
+            this.gameState = GameState.PlayingActions;
             var turns = [];
             var _loop_1 = function (clientId) {
                 robot = Board.Instance.robots.filter(function (r) { return r.playerID == clientId; })[0];
@@ -794,8 +843,7 @@ var Main = (function () {
             for (var clientId in this.playerSubmittedCards) {
                 _loop_1(clientId);
             }
-            var turnLogic = new TurnLogic();
-            turnLogic.run(turns);
+            this.turnLogic = new TurnLogic(turns);
         }
     };
     return Main;
@@ -803,7 +851,8 @@ var Main = (function () {
 var main;
 function startGame() {
     main = new Main();
-    main.initGameObject();
+    phaserGame = new Phaser.Game(900, 900, Phaser.AUTO, $('#gameContainer')[0], { preload: function () { return main.preload(); }, create: function () { return main.create(); }, update: function () { return main.update(); } });
+    ;
 }
 function initRoboRally() {
     var gameId = location.pathname.match(/^\/g\/(\w+)/)[1];
@@ -884,15 +933,16 @@ var Robot = (function () {
         this.availableProgramCards = [];
         this.registeredProgramCards = [];
         this.lastFlagOrder = 0;
-        var pixelPos = _position.toPixelPosition();
+        var pixelPos = _position.toCenterPixelPosition();
         this.sprite = phaserGame.add.sprite(pixelPos.x, pixelPos.y, 'robots');
         this.sprite.frame = spriteIndex;
         this.sprite.maxHealth = this.maxHealth;
         this.sprite.health = health;
+        this.sprite.anchor.set(0.5);
     }
     Robot.prototype.rotate = function (quarterRotationsCW) {
         this._orientation = DirectionUtil.clamp(this._orientation + quarterRotationsCW);
-        phaserGame.add.tween(this.sprite).to({ angle: DirectionUtil.toDegrees(this._orientation) }, 200, Phaser.Easing.Cubic.InOut, true);
+        phaserGame.add.tween(this.sprite).to({ angle: DirectionUtil.toDegrees(this._orientation) }, 750, Phaser.Easing.Cubic.InOut, true);
     };
     Object.defineProperty(Robot.prototype, "orientation", {
         get: function () {
@@ -920,9 +970,23 @@ var Robot = (function () {
         },
         set: function (val) {
             this._position = val.clone();
-            var pixelPos = val.toPixelPosition();
-            phaserGame.add.tween(this.sprite).to({ x: pixelPos.x, y: pixelPos.y }, 200, Phaser.Easing.Cubic.InOut, true);
+            var pixelPos = val.toCenterPixelPosition();
+            phaserGame.add.tween(this.sprite).to({ x: pixelPos.x, y: pixelPos.y }, 750, Phaser.Easing.Cubic.InOut, true);
             this.sprite.visible = true;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Robot.prototype, "x", {
+        get: function () {
+            return this._position.x;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Robot.prototype, "y", {
+        get: function () {
+            return this._position.y;
         },
         enumerable: true,
         configurable: true
@@ -987,30 +1051,58 @@ var RobotTurn = (function () {
     }
     return RobotTurn;
 }());
+var TurnState;
+(function (TurnState) {
+    TurnState[TurnState["RobotMovement"] = 0] = "RobotMovement";
+    TurnState[TurnState["BoardMovement"] = 1] = "BoardMovement";
+    TurnState[TurnState["Lasers"] = 2] = "Lasers";
+    TurnState[TurnState["Flags"] = 3] = "Flags";
+})(TurnState || (TurnState = {}));
 var TurnLogic = (function () {
-    function TurnLogic() {
-        this.numPhases = 5;
+    function TurnLogic(turnsData) {
+        this.turnsData = turnsData;
+        this.PHASE_COUNT = 5;
+        this.turnState = TurnState.RobotMovement;
+        this.nextTurnPhaseStepTime = 0;
+        this.phaseNumber = 0;
     }
-    TurnLogic.prototype.run = function (turns) {
-        // Execute each phase, one at a time
-        for (var i = 0; i < this.numPhases; i++) {
-            // For each phase, we collect the action each robot will perform into an array of RobotPhaseAction objects.
-            // We then execute the actions in priority order.
-            var robotMovements = [];
-            for (var _i = 0, turns_1 = turns; _i < turns_1.length; _i++) {
-                var turn = turns_1[_i];
-                robotMovements.push(new RobotPhaseMovement(turn.robot, turn.programCards[i]));
+    TurnLogic.prototype.isDoneAllPhases = function () {
+        return this.phaseNumber >= this.PHASE_COUNT;
+    };
+    TurnLogic.prototype.update = function () {
+        if (phaserGame.time.now >= this.nextTurnPhaseStepTime) {
+            if (this.turnState == TurnState.RobotMovement) {
+                this.runNextTurnPhase_RobotMovements();
+                this.nextTurnPhaseStepTime = phaserGame.time.now + 1000;
+                this.turnState = TurnState.BoardMovement;
             }
-            this.runRobotMovements(robotMovements);
-            Board.Instance.executeBoardElements(i);
-            Board.Instance.fireLasers();
-            Board.Instance.touchFlags();
+            else if (this.turnState == TurnState.BoardMovement) {
+                Board.Instance.executeBoardElements(this.phaseNumber);
+                this.nextTurnPhaseStepTime = phaserGame.time.now + 1000;
+                this.turnState = TurnState.Lasers;
+            }
+            else if (this.turnState == TurnState.Lasers) {
+                Board.Instance.fireLasers();
+                this.nextTurnPhaseStepTime = phaserGame.time.now + 1000;
+                this.turnState = TurnState.Flags;
+            }
+            else if (this.turnState == TurnState.Flags) {
+                Board.Instance.touchFlags();
+                this.nextTurnPhaseStepTime = phaserGame.time.now + 1000;
+                this.turnState = TurnState.RobotMovement;
+                this.phaseNumber++;
+            }
         }
     };
-    TurnLogic.prototype.runRobotMovements = function (robotMovements) {
+    TurnLogic.prototype.runNextTurnPhase_RobotMovements = function () {
+        var robotMovements = [];
+        for (var _i = 0, _a = this.turnsData; _i < _a.length; _i++) {
+            var turn = _a[_i];
+            robotMovements.push(new RobotPhaseMovement(turn.robot, turn.programCards[this.phaseNumber]));
+        }
         this.sortRobotMovements(robotMovements);
-        for (var _i = 0, robotMovements_1 = robotMovements; _i < robotMovements_1.length; _i++) {
-            var movement = robotMovements_1[_i];
+        for (var _b = 0, robotMovements_1 = robotMovements; _b < robotMovements_1.length; _b++) {
+            var movement = robotMovements_1[_b];
             this.tryExecuteRobotMovement(movement);
         }
     };

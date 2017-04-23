@@ -1,25 +1,59 @@
-﻿class TurnLogic {
-    readonly numPhases = 5;
+﻿enum TurnState {
+    RobotMovement,
+    BoardMovement,
+    Lasers,
+    Flags,
+}
 
-    run(turns: RobotTurn[]) {
-        // Execute each phase, one at a time
-        for (let i = 0; i < this.numPhases; i++) {
-            // For each phase, we collect the action each robot will perform into an array of RobotPhaseAction objects.
-            // We then execute the actions in priority order.
-            var robotMovements = [];
-            for (let turn of turns) {
-                robotMovements.push(new RobotPhaseMovement(turn.robot, turn.programCards[i]));
+class TurnLogic {
+    private readonly PHASE_COUNT = 5;
+
+    private turnState: TurnState;
+    private nextTurnPhaseStepTime: number;
+    private phaseNumber: number;
+
+    constructor(private turnsData: RobotTurn[]) {
+        this.turnState = TurnState.RobotMovement;
+        this.nextTurnPhaseStepTime = 0;
+        this.phaseNumber = 0;
+    }
+
+    public isDoneAllPhases() {
+        return this.phaseNumber >= this.PHASE_COUNT;
+    }
+
+    public update() {
+        if (phaserGame.time.now >= this.nextTurnPhaseStepTime) {
+            if (this.turnState == TurnState.RobotMovement) {
+                this.runNextTurnPhase_RobotMovements();
+                this.nextTurnPhaseStepTime = phaserGame.time.now + 1000;
+                this.turnState = TurnState.BoardMovement;
             }
-
-            this.runRobotMovements(robotMovements);
-
-            Board.Instance.executeBoardElements(i);
-            Board.Instance.fireLasers();
-            Board.Instance.touchFlags();
+            else if (this.turnState == TurnState.BoardMovement) {
+                Board.Instance.executeBoardElements(this.phaseNumber);
+                this.nextTurnPhaseStepTime = phaserGame.time.now + 1000;
+                this.turnState = TurnState.Lasers;
+            }
+            else if (this.turnState == TurnState.Lasers) {
+                Board.Instance.fireLasers();
+                this.nextTurnPhaseStepTime = phaserGame.time.now + 1000;
+                this.turnState = TurnState.Flags;
+            }
+            else if (this.turnState == TurnState.Flags) {
+                Board.Instance.touchFlags();
+                this.nextTurnPhaseStepTime = phaserGame.time.now + 1000;
+                this.turnState = TurnState.RobotMovement;
+                this.phaseNumber++;
+            }
         }
     }
 
-    private runRobotMovements(robotMovements: RobotPhaseMovement[]) {
+    private runNextTurnPhase_RobotMovements() {
+        var robotMovements = [];
+        for (let turn of this.turnsData) {
+            robotMovements.push(new RobotPhaseMovement(turn.robot, turn.programCards[this.phaseNumber]));
+        }
+
         this.sortRobotMovements(robotMovements);
 
         for (let movement of robotMovements) {

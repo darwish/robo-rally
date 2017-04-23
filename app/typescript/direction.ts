@@ -7,12 +7,13 @@ enum Direction {
 }
 
 class DirectionUtil {
-    public static getDirection(angleInDegrees) {
+    public static getDirection(angleInRads) {
+        let angleInDegrees = Phaser.Math.radToDeg(angleInRads);
         while (angleInDegrees < 0) {
             angleInDegrees += 360;
         }
 
-        return angleInDegrees / 90 % 360;
+        return ((angleInDegrees % 360) / 90) % 4;
     }
 
     public static clamp(direction: Direction) {
@@ -40,7 +41,7 @@ class DirectionUtil {
         }
     }
 
-    public static rotateDirection(direction: Direction, angleInDegrees: number) {
-        return this.getDirection(this.toDegrees(direction) + angleInDegrees);
+    public static rotateDirection(direction: Direction, angleInRads: number) {
+        return this.getDirection(Phaser.Math.degToRad(this.toDegrees(direction)) + angleInRads);
     }
 }
