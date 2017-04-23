@@ -4,8 +4,8 @@ class Board {
 
     public robots: Robot[] = [];
 
-    private lasers: Laser[] = [];
-    private flags: Flag[] = [];
+    public lasers: Laser[] = [];
+    public flags: Flag[] = [];
 
     constructor(public map: Phaser.Tilemap)
     {
@@ -27,7 +27,7 @@ class Board {
             var position = new BoardPosition(x, y);
 
             if (object.type == "Laser") {
-                var newLaser = new Laser(position, DirectionUtil.getDirection(object.rotation), object.count);
+                var newLaser = new Laser(position, DirectionUtil.getDirection(object.rotation), object.properties.Count);
                 this.lasers.push(newLaser);
             }
             else if (object.type == "Flag") {

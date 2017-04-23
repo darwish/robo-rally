@@ -1,10 +1,36 @@
 ﻿class Laser {
-    public sprite: Phaser.Sprite;
+    private sprites: Phaser.Sprite[] = [];
+    private beams: Phaser.Line[] = [];
 
     constructor(public position: BoardPosition, public facingDirection: Direction, public damagePower: number) {
         let pixelPos = position.toPixelPosition();
-        this.sprite = phaserGame.add.sprite(pixelPos.x, pixelPos.y, 'laser-emitter');
-        this.sprite.angle = DirectionUtil.toDegrees(facingDirection);
+        let rot = DirectionUtil.toDegrees(facingDirection) - 90;
+        pixelPos.x += 10;
+        pixelPos.y += map.tileHeight / 2;
+        let center = position.toCenterPixelPosition();
+        pixelPos.rotate(center.x, center.y, rot, true);
+        let graphics = phaserGame.add.graphics(0, 0);
+        graphics.lineStyle(2, 0x660000);
+
+        let offsets = [-25, 0, 25];
+        for (let i = 0; i < damagePower; i++) {
+            let p = new Phaser.Point(0, offsets[i]);
+            p.rotate(0, 0, rot, true);
+            p.add(pixelPos.x, pixelPos.y);
+
+            let sprite = phaserGame.add.sprite(p.x, p.y, 'laser-emitter');
+            sprite.anchor.set(0, 0.5);
+            sprite.angle = rot;
+            this.sprites.push(sprite);
+
+            let end = Phaser.Point.rotate(p.clone(), p.x + 1000, p.y, rot, true);
+            this.beams.push(new Phaser.Line(p.x, p.y, end.x, end.y));
+        }
+    }
+
+    public render() {
+        for (let beam of this.beams)
+            phaserGame.debug.geom(beam);
     }
 
     public fire() {

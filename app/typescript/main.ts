@@ -24,6 +24,7 @@ class Main {
         //phaserGame.load.crossOrigin = 'anonymous';
 
         phaserGame.load.image('laser-emitter', 'images/Laser%20Small.png');
+        phaserGame.load.image('laser-beam', 'images/Laser%20Segment.png');
         phaserGame.load.image('tileset', 'images/Spritesheet%20Small.png');
         phaserGame.load.image('player-card', 'images/player-card.png');
         phaserGame.load.image('laser-projectile', 'images/laser-projectile.png');
@@ -45,11 +46,16 @@ class Main {
     }
 
     public initGameObject() {
-        phaserGame = new Phaser.Game(900, 900, Phaser.AUTO, $('#gameContainer')[0], { preload: this.preload, create: this.create, update: this.update });
+        phaserGame = new Phaser.Game(900, 900, Phaser.AUTO, $('#gameContainer')[0], { preload: this.preload, create: this.create, update: this.update, render: this.render });
     }
 
     public update() {
 
+    }
+
+    public render() {
+        for (let laser of board.lasers)
+            laser.render();
     }
 
     public waitForPlayers() {
