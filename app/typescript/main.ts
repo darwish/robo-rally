@@ -126,7 +126,7 @@ class Main {
         socket.on('submitTurn', (submittedTurn) => {
             this.playerSubmittedCards[submittedTurn.playerId] = submittedTurn.cards.map((c) => new ProgramCard(c.type, c.distance, c.priority));
 
-            $('.playersList .playerItem').filter(function () { return $(this).data('player') == submittedTurn.playerId; }).addClass('submitted');
+            $('.playersList .playerItem').filter(function () { return $(this).data('player').id == submittedTurn.playerId; }).addClass('submitted');
 
             this.checkForAllPlayerSubmissions();
         });
@@ -175,12 +175,13 @@ class Main {
         }
 
         this.playerSubmittedCards[clientGame.clientId.id] = this.selectedCards;
-        this.checkForAllPlayerSubmissions();
+        $('.playersList .playerItem').filter(function () { return $(this).data('player').id == clientGame.clientId.id; }).addClass('submitted');
 
         socket.emit('submitTurn', {
-            playerId: clientGame.clientId,
+            playerId: clientGame.clientId.id,
             cards: this.selectedCards
         });
+        this.checkForAllPlayerSubmissions();
     }
 
     public checkForAllPlayerSubmissions() {

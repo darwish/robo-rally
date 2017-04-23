@@ -39,6 +39,9 @@ class ClientGame {
     public setPlayers(players: PlayerID[]) {
         this.gameData.playerIds = players;
         this.saveGame();
+        for (let playerId of players) {
+            Board.Instance.onPlayerJoined(playerId);
+        }
     }
 
     public saveGame() {
@@ -59,6 +62,9 @@ class ClientGame {
         this.gameData = JSON.parse(localStorage['Game_' + this.gameId]);
         socket.emit('join', { gameId: this.gameId, clientId: this.clientId});
         // TODO: load state
+        for (let playerId of this.gameData.playerIds) {
+            Board.Instance.onPlayerJoined(playerId);
+        }
 
         return true;
     }
