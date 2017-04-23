@@ -92,15 +92,12 @@ class Board {
 
         for (let otherRobot of this.robots) {
             if (otherRobot.position.x == newPosition.x && otherRobot.position.y == newPosition.y) {
-                if (this.attemptMoveRobot(otherRobot, direction)) {
-                    robot.position = newPosition;
-                    return true;
-                }
-                else {
-                    return false;
+                if (!this.attemptMoveRobot(otherRobot, direction)) {
+                   return false;
                 }
             }
         }
+        robot.position = newPosition;
     }
 
     public hasObstacleInDirection(tilePosition: BoardPosition, direction: Direction) {

@@ -35,7 +35,7 @@ var Board = (function () {
         }
     };
     Board.prototype.onPlayerJoined = function (playerID) {
-        var newRobot = new Robot(playerID, new BoardPosition(0, 0), 0, 3); // TODO: can't start all robots at the same place
+        var newRobot = new Robot(playerID.id, new BoardPosition(0, 0), 0, 3); // TODO: can't start all robots at the same place
         this.robots.push(newRobot);
     };
     Board.prototype.moveRobot = function (robot, distance, direction) {
@@ -79,15 +79,12 @@ var Board = (function () {
         for (var _i = 0, _a = this.robots; _i < _a.length; _i++) {
             var otherRobot = _a[_i];
             if (otherRobot.position.x == newPosition.x && otherRobot.position.y == newPosition.y) {
-                if (this.attemptMoveRobot(otherRobot, direction)) {
-                    robot.position = newPosition;
-                    return true;
-                }
-                else {
+                if (!this.attemptMoveRobot(otherRobot, direction)) {
                     return false;
                 }
             }
         }
+        robot.position = newPosition;
     };
     Board.prototype.hasObstacleInDirection = function (tilePosition, direction) {
         var thisTile = this.getTile(tilePosition);
@@ -101,6 +98,9 @@ var Board = (function () {
         return false;
     };
     Board.prototype.runRobotProgram = function (robot, programAction) {
+        if (!this.isPositionOnBoard(robot.position)) {
+            return;
+        }
         switch (programAction.type) {
             case ProgramCardType.ROTATE:
                 robot.rotate(programAction.distance);
@@ -123,9 +123,50 @@ var Board = (function () {
         // move robots that are on conveyor belts
         for (var _i = 0, _a = this.robots; _i < _a.length; _i++) {
             var robot = _a[_i];
-            if (this.getTile(robot.position).isConveyorBelt()) {
+            if (!this.isConveyorStationaryBot(robot)) {
+                // move onto next tile
+                var moveDirection = this.getTile(robot.position).conveyorBeltMovementDirection();
+                this.moveRobotAlongConveyor(robot, moveDirection);
+                // perform conveyor rotation
+                var newTile = this.getTile(robot.position.getAdjacentPosition(moveDirection));
+                robot.rotate(newTile.conveyorBeltRotationFromDirection(DirectionUtil.opposite(moveDirection)));
             }
         }
+    };
+    Board.prototype.moveRobotAlongConveyor = function (robot, direction) {
+        var newPosition = robot.position.getAdjacentPosition(direction);
+        var tile = this.getTile(newPosition);
+        if (!tile || tile.isPitTile()) {
+            robot.removeFromBoard();
+        }
+    };
+    Board.prototype.isConveyorStationaryBot = function (robot) {
+        var tile = this.getTile(robot.position);
+        var direction = tile.conveyorBeltMovementDirection();
+        if (!direction) {
+            return true;
+        }
+        var nextTile = this.getTile(robot.position.getAdjacentPosition(direction));
+        if (!tile.isConveyorBelt()) {
+            return true;
+        }
+        else if (nextTile.isConveyorMerge()) {
+            var otherTile = nextTile.getOtherConveyorEntrance(tile);
+            var otherRobot = this.robotInPosition(otherTile.position);
+            if (otherRobot) {
+                return this.isConveyorStationaryBot(otherRobot);
+            }
+        }
+        return false;
+    };
+    Board.prototype.robotInPosition = function (position) {
+        for (var _i = 0, _a = this.robots; _i < _a.length; _i++) {
+            var robot = _a[_i];
+            if (robot.position.x == position.x && robot.position.y == position.y) {
+                return robot;
+            }
+        }
+        return false;
     };
     Board.prototype.runPushers = function (phase) {
         for (var _i = 0, _a = this.robots; _i < _a.length; _i++) {
@@ -240,6 +281,51 @@ var BoardTile = (function () {
         }
         return false;
     };
+    BoardTile.prototype.isConveyorMerge = function () {
+        var tile = this.getPhaserTile("Floor Layer");
+        switch (tile.index) {
+            case 2:
+            case 3:
+            case 6:
+            case 7:
+                return true;
+            default:
+                return false;
+        }
+    };
+    BoardTile.prototype.getOtherConveyorEntrance = function (tile) {
+        for (var _i = 0, _a = this.getConveyorEntrances(); _i < _a.length; _i++) {
+            var position = _a[_i];
+            if (tile.position.x != position.x || tile.position.y != position.y) {
+                return new BoardTile(this.map, position);
+            }
+        }
+    };
+    BoardTile.prototype.getConveyorEntrances = function () {
+        var entrances;
+        var tile = this.getPhaserTile("Floor Layer");
+        switch (tile.index) {
+            case 0:
+            case 1:
+            case 4:
+            case 5:
+                return [
+                    this.position.getAdjacentPosition(DirectionUtil.rotateDirection(Direction.W, tile.rotation))
+                ];
+            case 2:
+            case 6:
+                return [
+                    this.position.getAdjacentPosition(DirectionUtil.rotateDirection(Direction.W, tile.rotation)),
+                    this.position.getAdjacentPosition(DirectionUtil.rotateDirection(Direction.S, tile.rotation))
+                ];
+            case 3:
+            case 7:
+                return [
+                    this.position.getAdjacentPosition(DirectionUtil.rotateDirection(Direction.N, tile.rotation)),
+                    this.position.getAdjacentPosition(DirectionUtil.rotateDirection(Direction.S, tile.rotation))
+                ];
+        }
+    };
     BoardTile.prototype.hasObstacleInDirection = function (direction) {
         var tile = this.getPhaserTile("Wall Layer");
         if (tile == null) {
@@ -265,26 +351,27 @@ var BoardTile = (function () {
             if (phaserTile.index == 1 || phaserTile.index == 5) {
                 // rotates left from West
                 if (DirectionUtil.rotateDirection(Direction.W, phaserTile.rotation) == direction) {
-                    return -90;
+                    return -1;
                 }
             }
             else if (phaserTile.index == 2 || phaserTile.index == 6) {
                 // rotates right from South
                 if (DirectionUtil.rotateDirection(Direction.S, phaserTile.rotation) == direction) {
-                    return 90;
+                    return 1;
                 }
             }
             else if (phaserTile.index == 3 || phaserTile.index == 7) {
                 // rotates left from North
                 if (DirectionUtil.rotateDirection(Direction.N, phaserTile.rotation) == direction) {
-                    return -90;
+                    return -1;
                 }
                 // rotates right from South
                 if (DirectionUtil.rotateDirection(Direction.S, phaserTile.rotation) == direction) {
-                    return 90;
+                    return 1;
                 }
             }
         }
+        return 0;
     };
     BoardTile.prototype.conveyorBeltMovementDirection = function () {
         if (this.isConveyorBelt()) {
@@ -365,6 +452,13 @@ var CardDeck = (function () {
     };
     return CardDeck;
 }());
+var PlayerID = (function () {
+    function PlayerID(id, friendlyName) {
+        this.id = id;
+        this.friendlyName = friendlyName;
+    }
+    return PlayerID;
+}());
 var ClientGame = (function () {
     function ClientGame(gameId) {
         this.gameId = gameId;
@@ -380,14 +474,14 @@ var ClientGame = (function () {
         this.saveGame();
     };
     ClientGame.prototype.isHost = function () {
-        return this.gameData.hostId == this.clientId;
+        return this.gameData.hostId && this.gameData.hostId.id == this.clientId.id;
     };
     ClientGame.prototype.addPlayer = function (playerId) {
-        if (this.gameData.playerIds.indexOf(playerId) == -1) {
+        if (!this.gameData.playerIds.some(function (x) { return x.id == playerId.id; })) {
             this.gameData.playerIds.push(playerId);
-            setTimeout(function () { return Board.Instance.onPlayerJoined(playerId); }, 20); // Less race condition, more technical debt
             this.saveGame();
         }
+        Board.Instance.onPlayerJoined(playerId);
     };
     ClientGame.prototype.getPlayers = function () {
         return this.gameData.playerIds;
@@ -409,21 +503,22 @@ var ClientGame = (function () {
             return false;
         }
         this.gameData = JSON.parse(localStorage['Game_' + this.gameId]);
-        socket.emit('join', { gameId: this.gameId, clientId: this.clientId, friendlyName: this.friendlyName });
+        socket.emit('join', { gameId: this.gameId, clientId: this.clientId });
         // TODO: load state
         return true;
     };
     ClientGame.prototype.joinGame = function () {
-        socket.emit('join', { gameId: this.gameId, clientId: this.clientId, friendlyName: this.friendlyName });
+        socket.emit('join', { gameId: this.gameId, clientId: this.clientId });
     };
     ClientGame.prototype.getOrCreateClientId = function () {
+        this.clientId = new PlayerID(null, null);
         if ('clientId' in localStorage) {
-            this.clientId = localStorage['clientId'];
-            this.friendlyName = localStorage['friendlyName'];
+            this.clientId.id = localStorage['clientId'];
+            this.clientId.friendlyName = localStorage['friendlyName'];
         }
         else {
-            this.clientId = localStorage['clientId'] = Guid.newGuid();
-            this.friendlyName = localStorage['friendlyName'] = generateName();
+            this.clientId.id = localStorage['clientId'] = Guid.newGuid();
+            this.clientId.friendlyName = localStorage['friendlyName'] = generateName();
         }
     };
     return ClientGame;
@@ -600,10 +695,12 @@ var Main = (function () {
         }
     };
     Main.prototype.showWaitingPlayers = function (clientGame) {
-        var list = clientGame.getPlayers().map(function (playerid) {
-            return '<li>' + playerid + '</li>';
-        }).join('');
-        $('.playersList').html(list);
+        $('.playersList').empty();
+        clientGame.getPlayers().forEach(function (player) {
+            var playerItem = $('<li class="playerItem">' + player.friendlyName + '</li>');
+            playerItem.data('player', player);
+            $('.playersList').append(playerItem);
+        });
     };
     Main.prototype.startGame = function () {
         $('.startGame').addClass("hidden");
@@ -615,10 +712,11 @@ var Main = (function () {
         var hands = this.dealCards(handSizes);
         var handData = {};
         for (var i = 0; i < players.length; i++) {
-            handData[players[i]] = hands[i];
+            handData[players[i].id] = hands[i];
         }
         socket.emit('dealtCards', handData);
         this.showCards(hands[0]);
+        this.waitForAllSubmissions();
     };
     Main.prototype.quitGame = function () {
         window.location.href = "/";
@@ -627,7 +725,7 @@ var Main = (function () {
         var _this = this;
         socket.on('dealtCards', function (handData) {
             socket.off('dealtCards');
-            var cardData = handData[clientGame.clientId];
+            var cardData = handData[clientGame.clientId.id];
             _this.cards = cardData.map(function (c) { return new ProgramCard(c.type, c.distance, c.priority); });
             _this.showCards(_this.cards);
             _this.waitForAllSubmissions();
@@ -637,13 +735,13 @@ var Main = (function () {
         var _this = this;
         socket.on('submitTurn', function (submittedTurn) {
             _this.playerSubmittedCards[submittedTurn.playerId] = submittedTurn.cards.map(function (c) { return new ProgramCard(c.type, c.distance, c.priority); });
+            $('.playersList .playerItem').filter(function () { return $(this).data('player') == submittedTurn.playerId; }).addClass('submitted');
             _this.checkForAllPlayerSubmissions();
         });
     };
     Main.prototype.showCards = function (cards) {
         $('.statusText').html('Choose Your Cards');
         $('.cardContainer').empty();
-        cards.forEach;
         cards.forEach(function (card) {
             var cardChoice = $('<li class="cardChoice">' + card.toString() + '</li>');
             cardChoice.data('card', card);
@@ -678,7 +776,7 @@ var Main = (function () {
             alert("You must choose 5 cards to submit. You've only chosen " + this.selectedCards.length + ".");
             return;
         }
-        this.playerSubmittedCards[clientGame.clientId] = this.selectedCards;
+        this.playerSubmittedCards[clientGame.clientId.id] = this.selectedCards;
         this.checkForAllPlayerSubmissions();
         socket.emit('submitTurn', {
             playerId: clientGame.clientId,
@@ -772,12 +870,12 @@ var ProgramCardType;
     ProgramCardType[ProgramCardType["ROTATE"] = 1] = "ROTATE";
 })(ProgramCardType || (ProgramCardType = {}));
 var Robot = (function () {
-    function Robot(playerID, _position, orientation, lives, spriteIndex, health) {
+    function Robot(playerID, _position, _orientation, lives, spriteIndex, health) {
         if (spriteIndex === void 0) { spriteIndex = Robot.pickRandomSprite(); }
         if (health === void 0) { health = 10; }
         this.playerID = playerID;
         this._position = _position;
-        this.orientation = orientation;
+        this._orientation = _orientation;
         this.lives = lives;
         this.maxHealth = 10;
         this.isPoweredDown = false;
@@ -793,8 +891,16 @@ var Robot = (function () {
         this.sprite.health = health;
     }
     Robot.prototype.rotate = function (quarterRotationsCW) {
-        this.orientation = DirectionUtil.clamp(this.orientation + quarterRotationsCW);
+        this._orientation = DirectionUtil.clamp(this._orientation + quarterRotationsCW);
+        phaserGame.add.tween(this.sprite).to({ angle: DirectionUtil.toDegrees(this._orientation) }, 200, Phaser.Easing.Cubic.InOut, true);
     };
+    Object.defineProperty(Robot.prototype, "orientation", {
+        get: function () {
+            return this._orientation;
+        },
+        enumerable: true,
+        configurable: true
+    });
     Robot.pickRandomSprite = function () {
         return Math.floor(Math.random() * phaserGame.cache.getFrameCount('robots'));
     };
@@ -810,11 +916,12 @@ var Robot = (function () {
     });
     Object.defineProperty(Robot.prototype, "position", {
         get: function () {
-            return this._position;
+            return this._position.clone();
         },
         set: function (val) {
             this._position = val.clone();
-            this.sprite.position = val.toPixelPosition();
+            var pixelPos = val.toPixelPosition();
+            phaserGame.add.tween(this.sprite).to({ x: pixelPos.x, y: pixelPos.y }, 200, Phaser.Easing.Cubic.InOut, true);
             this.sprite.visible = true;
         },
         enumerable: true,
