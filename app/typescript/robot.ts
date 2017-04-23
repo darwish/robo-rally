@@ -44,7 +44,7 @@ class Robot {
     }
 
     get position(): BoardPosition {
-        return this._position;
+        return this._position.clone();
     }
 
     set position(val: BoardPosition) {
