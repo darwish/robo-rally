@@ -42,8 +42,12 @@ class Board {
     }
 
     public onPlayerJoined(playerID: PlayerID) {
-        var newRobot = new Robot(playerID.id, new BoardPosition(0, 0), 0, 3); // TODO: can't start all robots at the same place
+        var newRobot = new Robot(playerID.id, new BoardPosition(this.robots.length, 0), 0, 3); // TODO: can't start all robots at the same place
         this.robots.push(newRobot);
+    }
+
+    public clearRobots() {
+        this.robots = [];
     }
 
     protected moveRobot(robot: Robot, distance: number, direction: Direction) {
