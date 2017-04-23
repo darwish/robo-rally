@@ -42,7 +42,7 @@ class Board {
     }
 
     public onPlayerJoined(playerID: PlayerID) {
-        var newRobot = new Robot(playerID.id, new BoardPosition(this.robots.length, 0), 0, 3); // TODO: can't start all robots at the same place
+        var newRobot = new Robot(playerID.id, new BoardPosition(this.robots.length, 0), 2, 3); // TODO: can't start all robots at the same place
         this.robots.push(newRobot);
     }
 
@@ -65,7 +65,7 @@ class Board {
     }
 
     public getTile(position: BoardPosition) {
-        if (this.isPositionOnBoard(position)) {
+        if (position && this.isPositionOnBoard(position)) {
             return new BoardTile(this.map, position);
         }
         return null;
@@ -143,21 +143,30 @@ class Board {
     }
 
     private runConveyorBelts() {
+        console.log('Running Conveyor Belts...');
         // move robots that are on conveyor belts
         for (let robot of this.robots) {
             if (!this.isConveyorStationaryBot(robot)) {
                 // move onto next tile
                 let moveDirection = this.getTile(robot.position).conveyorBeltMovementDirection();
-                this.moveRobotAlongConveyor(robot, moveDirection);
+
+                console.log("Moving robot in (" + robot.position.x + ", " + robot.position.y + ") - Direction: " + moveDirection);
                 // perform conveyor rotation
                 let newTile = this.getTile(robot.position.getAdjacentPosition(moveDirection));
-                robot.rotate(newTile.conveyorBeltRotationFromDirection(DirectionUtil.opposite(moveDirection)))
+                this.moveRobotAlongConveyor(robot, moveDirection);
+                if (newTile) {
+                    let rotation = newTile.conveyorBeltRotationFromDirection(DirectionUtil.opposite(moveDirection));
+                    console.log("Rotation: " + rotation)
+                    robot.rotate(rotation);
+                }
+                
             }
         }
     }
 
     private moveRobotAlongConveyor(robot: Robot, direction: Direction) {
         let newPosition = robot.position.getAdjacentPosition(direction);
+        robot.position = newPosition;
         let tile: BoardTile = this.getTile(newPosition);
         if ( !tile || tile.isPitTile() ) {
             robot.removeFromBoard();
@@ -174,7 +183,7 @@ class Board {
 
         if (!tile.isConveyorBelt()) {
             return true;
-        } else if (nextTile.isConveyorMerge()) {
+        } else if (nextTile && nextTile.isConveyorMerge()) {
             let otherTile = nextTile.getOtherConveyorEntrance(tile);
             let otherRobot = this.robotInPosition(otherTile.position);
             if (otherRobot) {
