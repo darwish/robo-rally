@@ -11,7 +11,7 @@ class Robot {
 
     readonly maxHealth = 10;
 
-    constructor(public playerID: string, private _position: BoardPosition, public orientation: Direction, public lives: number, spriteIndex: number = Robot.pickRandomSprite(), health = 10) {
+    constructor(public playerID: string, private _position: BoardPosition, private _orientation: Direction, public lives: number, spriteIndex: number = Robot.pickRandomSprite(), health = 10) {
 
         this.isPoweredDown = false;
         this.optionCards = [];
@@ -28,7 +28,12 @@ class Robot {
     }
 
     public rotate(quarterRotationsCW: number) {
-        this.orientation = DirectionUtil.clamp(this.orientation + quarterRotationsCW);
+        this._orientation = DirectionUtil.clamp(this._orientation + quarterRotationsCW);
+        phaserGame.add.tween(this.sprite).to({ angle: DirectionUtil.toDegrees(this._orientation) }, 200, Phaser.Easing.Cubic.InOut);
+    }
+
+    get orientation(): number {
+        return this._orientation;
     }
 
     private static pickRandomSprite() {
@@ -49,7 +54,8 @@ class Robot {
 
     set position(val: BoardPosition) {
         this._position = val.clone();
-        this.sprite.position = val.toPixelPosition();
+        let pixelPos = val.toPixelPosition();
+        phaserGame.add.tween(this.sprite).to({ x: pixelPos.x, y: pixelPos.y }, 200, Phaser.Easing.Cubic.InOut);
         this.sprite.visible = true;
     }
 
