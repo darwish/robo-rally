@@ -9,11 +9,21 @@ declare var socket: SocketIOClient.Socket;
 
 var phaserGame: Phaser.Game, map: Phaser.Tilemap, board: Board;
 
+enum GameState {
+    Initializing,
+    WaitingForPlayerInput,
+    PlayingActions,
+}
+
 class Main {
+    public gameState: GameState = GameState.Initializing;
     public globalCardDeck: CardDeck;
     public cards: ProgramCard[];
     public selectedCards: ProgramCard[] = [];
     public playerSubmittedCards: { [key: string]: ProgramCard[]; } = {};
+
+    private turnLogic: TurnLogic = null;
+    private nextTurnPhaseTime: number = 0;
 
     constructor() {
         this.globalCardDeck = CardDeck.newDeck();
@@ -40,8 +50,18 @@ class Main {
         initRoboRally();
     }
 
-    public initGameObject() {
-        phaserGame = new Phaser.Game(900, 900, Phaser.AUTO, $('#gameContainer')[0], { preload: this.preload, create: this.create });
+    public update() {
+        if (this.gameState == GameState.PlayingActions) {
+            if (this.turnLogic != null) {
+                if (this.turnLogic.isDoneAllPhases()) {
+                    this.startNewTurn();
+                }
+                else if (phaserGame.time.now > this.nextTurnPhaseTime) {
+                    this.turnLogic.runNextTurnPhase();
+                    this.nextTurnPhaseTime = phaserGame.time.now + 2000;
+                }
+            }
+        }
     }
 
     public waitForPlayers() {
@@ -83,6 +103,12 @@ class Main {
         socket.off('joined');
         socket.off('broadcastPlayers');
 
+        this.startNewTurn();
+    }
+
+    private startNewTurn() {
+        this.gameState = GameState.WaitingForPlayerInput;
+
         var players = clientGame.getPlayers();
         var handSizes = players.map(() => 9);
         var hands = this.dealCards(handSizes);
@@ -114,6 +140,7 @@ class Main {
     }
 
     public waitForAllSubmissions() {
+
         socket.on('submitTurn', (submittedTurn) => {
             this.playerSubmittedCards[submittedTurn.playerId] = submittedTurn.cards.map((c) => new ProgramCard(c.type, c.distance, c.priority));
 
@@ -176,13 +203,14 @@ class Main {
 
     public checkForAllPlayerSubmissions() {
         if (Object.keys(this.playerSubmittedCards).length == clientGame.getPlayers().length) {
+            this.gameState = GameState.PlayingActions;
+
             var turns = [];
             for (let clientId in this.playerSubmittedCards) {
                 var robot = Board.Instance.robots.filter((r) => r.playerID == clientId)[0];
                 turns.push(new RobotTurn(robot, this.playerSubmittedCards[clientId]));
             }
-            var turnLogic = new TurnLogic();
-            turnLogic.run(turns);
+            this.turnLogic = new TurnLogic(turns);
         }
     }
 }
@@ -190,7 +218,7 @@ class Main {
 var main: Main;
 function startGame() {
     main = new Main();
-    main.initGameObject();
+    phaserGame = new Phaser.Game(900, 900, Phaser.AUTO, $('#gameContainer')[0], { preload: () => main.preload(), create: () => main.create(), update: () => main.update() });;
 }
 
 function initRoboRally() {

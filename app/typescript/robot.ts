@@ -29,7 +29,7 @@ class Robot {
 
     public rotate(quarterRotationsCW: number) {
         this._orientation = DirectionUtil.clamp(this._orientation + quarterRotationsCW);
-        phaserGame.add.tween(this.sprite).to({ angle: DirectionUtil.toDegrees(this._orientation) }, 200, Phaser.Easing.Cubic.InOut, true);
+        phaserGame.add.tween(this.sprite).to({ angle: DirectionUtil.toDegrees(this._orientation) }, 1000, Phaser.Easing.Cubic.InOut, true);
     }
 
     get orientation(): number {
@@ -55,7 +55,7 @@ class Robot {
     set position(val: BoardPosition) {
         this._position = val.clone();
         let pixelPos = val.toPixelPosition();
-        phaserGame.add.tween(this.sprite).to({ x: pixelPos.x, y: pixelPos.y }, 200, Phaser.Easing.Cubic.InOut, true);
+        phaserGame.add.tween(this.sprite).to({ x: pixelPos.x, y: pixelPos.y }, 1000, Phaser.Easing.Cubic.InOut, true);
         this.sprite.visible = true;
     }
 

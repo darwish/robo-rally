@@ -1,22 +1,29 @@
 ﻿class TurnLogic {
-    readonly numPhases = 5;
+    private readonly PHASE_COUNT = 5;
 
-    run(turns: RobotTurn[]) {
-        // Execute each phase, one at a time
-        for (let i = 0; i < this.numPhases; i++) {
-            // For each phase, we collect the action each robot will perform into an array of RobotPhaseAction objects.
-            // We then execute the actions in priority order.
-            var robotMovements = [];
-            for (let turn of turns) {
-                robotMovements.push(new RobotPhaseMovement(turn.robot, turn.programCards[i]));
-            }
+    private phaseNumber: number;
 
-            this.runRobotMovements(robotMovements);
+    constructor(private turnsData: RobotTurn[]) {
+        this.phaseNumber = 0;
+    }
 
-            Board.Instance.executeBoardElements(i);
-            Board.Instance.fireLasers();
-            Board.Instance.touchFlags();
+    public isDoneAllPhases() {
+        return this.phaseNumber >= this.PHASE_COUNT;
+    }
+
+    public runNextTurnPhase() {
+        var robotMovements = [];
+        for (let turn of this.turnsData) {
+            robotMovements.push(new RobotPhaseMovement(turn.robot, turn.programCards[this.phaseNumber]));
         }
+
+        this.runRobotMovements(robotMovements);
+
+        Board.Instance.executeBoardElements(this.phaseNumber);
+        Board.Instance.fireLasers();
+        Board.Instance.touchFlags();
+
+        this.phaseNumber++;
     }
 
     private runRobotMovements(robotMovements: RobotPhaseMovement[]) {

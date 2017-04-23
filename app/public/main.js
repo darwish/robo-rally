@@ -240,7 +240,7 @@ var BoardPosition = (function (_super) {
     /** Returns the top left of the tile in pixel coordinates. */
     BoardPosition.prototype.toPixelPosition = function () {
         var tile = map.getTile(this.x, this.y);
-        return new Phaser.Point(tile.x, tile.y);
+        return new Phaser.Point(tile.worldX, tile.worldY);
     };
     BoardPosition.prototype.clone = function () {
         return new BoardPosition(this.x, this.y);
@@ -648,10 +648,19 @@ var Laser = (function () {
 /// <reference path="../../typings/jquery/jquery.d.ts"/>
 /// <reference path="../../typings/socket.io-client/socket.io-client.d.ts"/>
 var phaserGame, map, board;
+var GameState;
+(function (GameState) {
+    GameState[GameState["Initializing"] = 0] = "Initializing";
+    GameState[GameState["WaitingForPlayerInput"] = 1] = "WaitingForPlayerInput";
+    GameState[GameState["PlayingActions"] = 2] = "PlayingActions";
+})(GameState || (GameState = {}));
 var Main = (function () {
     function Main() {
+        this.gameState = GameState.Initializing;
         this.selectedCards = [];
         this.playerSubmittedCards = {};
+        this.turnLogic = null;
+        this.nextTurnPhaseTime = 0;
         this.globalCardDeck = CardDeck.newDeck();
     }
     Main.prototype.preload = function () {
@@ -671,8 +680,18 @@ var Main = (function () {
         board = new Board(map);
         initRoboRally();
     };
-    Main.prototype.initGameObject = function () {
-        phaserGame = new Phaser.Game(900, 900, Phaser.AUTO, $('#gameContainer')[0], { preload: this.preload, create: this.create });
+    Main.prototype.update = function () {
+        if (this.gameState == GameState.PlayingActions) {
+            if (this.turnLogic != null) {
+                if (this.turnLogic.isDoneAllPhases()) {
+                    this.startNewTurn();
+                }
+                else if (phaserGame.time.now > this.nextTurnPhaseTime) {
+                    this.turnLogic.runNextTurnPhase();
+                    this.nextTurnPhaseTime = phaserGame.time.now + 2000;
+                }
+            }
+        }
     };
     Main.prototype.waitForPlayers = function () {
         var _this = this;
@@ -707,6 +726,10 @@ var Main = (function () {
         $('.quitGame').removeClass("hidden");
         socket.off('joined');
         socket.off('broadcastPlayers');
+        this.startNewTurn();
+    };
+    Main.prototype.startNewTurn = function () {
+        this.gameState = GameState.WaitingForPlayerInput;
         var players = clientGame.getPlayers();
         var handSizes = players.map(function () { return 9; });
         var hands = this.dealCards(handSizes);
@@ -785,6 +808,7 @@ var Main = (function () {
     };
     Main.prototype.checkForAllPlayerSubmissions = function () {
         if (Object.keys(this.playerSubmittedCards).length == clientGame.getPlayers().length) {
+            this.gameState = GameState.PlayingActions;
             var turns = [];
             var _loop_1 = function (clientId) {
                 robot = Board.Instance.robots.filter(function (r) { return r.playerID == clientId; })[0];
@@ -794,8 +818,7 @@ var Main = (function () {
             for (var clientId in this.playerSubmittedCards) {
                 _loop_1(clientId);
             }
-            var turnLogic = new TurnLogic();
-            turnLogic.run(turns);
+            this.turnLogic = new TurnLogic(turns);
         }
     };
     return Main;
@@ -803,7 +826,8 @@ var Main = (function () {
 var main;
 function startGame() {
     main = new Main();
-    main.initGameObject();
+    phaserGame = new Phaser.Game(900, 900, Phaser.AUTO, $('#gameContainer')[0], { preload: function () { return main.preload(); }, create: function () { return main.create(); }, update: function () { return main.update(); } });
+    ;
 }
 function initRoboRally() {
     var gameId = location.pathname.match(/^\/g\/(\w+)/)[1];
@@ -892,7 +916,7 @@ var Robot = (function () {
     }
     Robot.prototype.rotate = function (quarterRotationsCW) {
         this._orientation = DirectionUtil.clamp(this._orientation + quarterRotationsCW);
-        phaserGame.add.tween(this.sprite).to({ angle: DirectionUtil.toDegrees(this._orientation) }, 200, Phaser.Easing.Cubic.InOut, true);
+        phaserGame.add.tween(this.sprite).to({ angle: DirectionUtil.toDegrees(this._orientation) }, 1000, Phaser.Easing.Cubic.InOut, true);
     };
     Object.defineProperty(Robot.prototype, "orientation", {
         get: function () {
@@ -921,7 +945,7 @@ var Robot = (function () {
         set: function (val) {
             this._position = val.clone();
             var pixelPos = val.toPixelPosition();
-            phaserGame.add.tween(this.sprite).to({ x: pixelPos.x, y: pixelPos.y }, 200, Phaser.Easing.Cubic.InOut, true);
+            phaserGame.add.tween(this.sprite).to({ x: pixelPos.x, y: pixelPos.y }, 1000, Phaser.Easing.Cubic.InOut, true);
             this.sprite.visible = true;
         },
         enumerable: true,
@@ -988,24 +1012,25 @@ var RobotTurn = (function () {
     return RobotTurn;
 }());
 var TurnLogic = (function () {
-    function TurnLogic() {
-        this.numPhases = 5;
+    function TurnLogic(turnsData) {
+        this.turnsData = turnsData;
+        this.PHASE_COUNT = 5;
+        this.phaseNumber = 0;
     }
-    TurnLogic.prototype.run = function (turns) {
-        // Execute each phase, one at a time
-        for (var i = 0; i < this.numPhases; i++) {
-            // For each phase, we collect the action each robot will perform into an array of RobotPhaseAction objects.
-            // We then execute the actions in priority order.
-            var robotMovements = [];
-            for (var _i = 0, turns_1 = turns; _i < turns_1.length; _i++) {
-                var turn = turns_1[_i];
-                robotMovements.push(new RobotPhaseMovement(turn.robot, turn.programCards[i]));
-            }
-            this.runRobotMovements(robotMovements);
-            Board.Instance.executeBoardElements(i);
-            Board.Instance.fireLasers();
-            Board.Instance.touchFlags();
+    TurnLogic.prototype.isDoneAllPhases = function () {
+        return this.phaseNumber >= this.PHASE_COUNT;
+    };
+    TurnLogic.prototype.runNextTurnPhase = function () {
+        var robotMovements = [];
+        for (var _i = 0, _a = this.turnsData; _i < _a.length; _i++) {
+            var turn = _a[_i];
+            robotMovements.push(new RobotPhaseMovement(turn.robot, turn.programCards[this.phaseNumber]));
         }
+        this.runRobotMovements(robotMovements);
+        Board.Instance.executeBoardElements(this.phaseNumber);
+        Board.Instance.fireLasers();
+        Board.Instance.touchFlags();
+        this.phaseNumber++;
     };
     TurnLogic.prototype.runRobotMovements = function (robotMovements) {
         this.sortRobotMovements(robotMovements);
