@@ -35,6 +35,10 @@ class BoardTile {
 
     public hasObstacleInDirection(direction: Direction) {
         var tile: Phaser.Tile = this.getPhaserTile("Wall Layer");
+        if (tile == null) {
+            return false;
+        }
+
         if (tile.index == 12
             && (DirectionUtil.getDirection(tile.rotation) == direction || DirectionUtil.getDirection(tile.rotation + 90) == direction)) {
             return true;

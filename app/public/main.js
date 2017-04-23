@@ -131,6 +131,9 @@ var Board = (function () {
         for (var _i = 0, _a = this.robots; _i < _a.length; _i++) {
             var robot = _a[_i];
             var tile = this.map.getTile(robot.position.x, robot.position.y, "Wall Layer");
+            if (tile == null) {
+                continue;
+            }
             if (tile.index == 16 && phase % 2 == 1) {
                 this.attemptMoveRobot(robot, DirectionUtil.getDirection(tile.rotation + 90));
             }
@@ -239,6 +242,9 @@ var BoardTile = (function () {
     };
     BoardTile.prototype.hasObstacleInDirection = function (direction) {
         var tile = this.getPhaserTile("Wall Layer");
+        if (tile == null) {
+            return false;
+        }
         if (tile.index == 12
             && (DirectionUtil.getDirection(tile.rotation) == direction || DirectionUtil.getDirection(tile.rotation + 90) == direction)) {
             return true;

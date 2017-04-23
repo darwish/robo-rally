@@ -150,6 +150,10 @@ class Board {
     private runPushers(phase: number) {
         for (let robot of this.robots) {
             var tile: Phaser.Tile = this.map.getTile(robot.position.x, robot.position.y, "Wall Layer");
+            if (tile == null) {
+                continue;
+            }
+
             if (tile.index == 16 && phase % 2 == 1) {
                 this.attemptMoveRobot(robot, DirectionUtil.getDirection(tile.rotation + 90));
             }
