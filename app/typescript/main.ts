@@ -12,6 +12,8 @@ var phaserGame: Phaser.Game, map: Phaser.Tilemap;
 class Main {
     public globalCardDeck: CardDeck;
     public cards: ProgramCard[];
+    public selectedCards: ProgramCard[] = [];
+    public playerSubmittedCards: { [key: string]: ProgramCard[]; } = {};
 
     constructor() {
         this.globalCardDeck = CardDeck.newDeck();
@@ -84,7 +86,7 @@ class Main {
         for (let i = 0; i < players.length; i++) {
             handData[players[i]] = hands[i];
         }
-        socket.emit('dealtCards', JSON.stringify(handData));
+        socket.emit('dealtCards', handData);
 
         this.showCards(hands[0]);
     }
@@ -97,23 +99,83 @@ class Main {
         socket.on('dealtCards', (handData) => {
             socket.off('dealtCards');
 
-            var cardData = JSON.parse(handData)[clientGame.clientId];
+            var cardData = handData[clientGame.clientId];
             this.cards = cardData.map((c) => new ProgramCard(c.type, c.distance, c.priority));
             this.showCards(this.cards);
+
+            this.waitForAllSubmissions();
+        });
+    }
+
+    public waitForAllSubmissions() {
+        socket.on('submitTurn', (submittedTurn) => {
+            this.playerSubmittedCards[submittedTurn.playerId] = submittedTurn.cards.map((c) => new ProgramCard(c.type, c.distance, c.priority));
+            this.checkForAllPlayerSubmissions();
         });
     }
 
     public showCards(cards: ProgramCard[]) {
         $('.statusText').html('Choose Your Cards');
 
-        var list = cards.map((card) => {
-            return '<li>' + card.toString() + '</li>';
-        }).join('');
-        $('.cardContainer').html(list);
+        $('.cardContainer').empty();
+        cards.forEach
+        cards.forEach((card) => {
+            var cardChoice = $('<li class="cardChoice">' + card.toString() + '</li>');
+            cardChoice.data('card', card);
+            $('.cardContainer').append(cardChoice);
+        });
     }
 
     public dealCards(handSizes: number[]) {
         return this.globalCardDeck.deal(handSizes);
+    }
+
+    public chooseCard(element) {
+        var card = $(element).data('card');
+
+        if ($(element).hasClass('selected')) {
+            this.selectedCards.splice(this.selectedCards.indexOf(card), 1);
+            $(element).removeClass('selected');
+            $('.submitCards').addClass('hidden');
+        } else {
+            if (this.selectedCards.length < 5) {
+                this.selectedCards.push(card);
+                $(element).addClass('selected');
+
+                if (this.selectedCards.length == 5) {
+                    $('.submitCards').removeClass('hidden');
+                } else {
+                    $('.submitCards').addClass('hidden');
+                }
+            }
+        }
+    }
+
+    public submitSelectedCards() {
+        if (this.selectedCards.length != 5) {
+            alert("You must choose 5 cards to submit. You've only chosen " + this.selectedCards.length + ".");
+            return;
+        }
+
+        this.playerSubmittedCards[clientGame.clientId] = this.selectedCards;
+        this.checkForAllPlayerSubmissions();
+
+        socket.emit('submitTurn', {
+            playerId: clientGame.clientId,
+            cards: this.selectedCards
+        });
+    }
+
+    public checkForAllPlayerSubmissions() {
+        if (Object.keys(this.playerSubmittedCards).length == clientGame.getPlayers().length) {
+            var turns = [];
+            for (let clientId in this.playerSubmittedCards) {
+                //Board.Instance.robots.filter((r) => r)
+                turns.push(new RobotTurn(this.robot, this.playerSubmittedCards[clientId]));
+            }
+            var turnLogic = new TurnLogic();
+            turnLogic.run(turns);
+        }
     }
 }
 
@@ -134,13 +196,11 @@ function initRoboRally() {
         if (!clientGame.isHost()) {
             clientGame.loadOrJoin();
         }
-        else {
-            clientGame.addPlayer(clientGame.clientId);
-        }
-
         main.waitForPlayers();
     });
 
     $('.startGame').click(() => main.startGame());
     $('.quitGame').click(() => main.quitGame());
+    $('.cardContainer').on('click', '.cardChoice', function () { main.chooseCard(this); });
+    $('.submitCards').click(() => main.submitSelectedCards());
 }
