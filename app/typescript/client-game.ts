@@ -25,7 +25,7 @@ class ClientGame {
     }
 
     public addPlayer(playerId: PlayerID) {
-        if (this.gameData.playerIds.indexOf(playerId) == -1) {
+        if (!this.gameData.playerIds.some(x => x.id == playerId.id)) {
             this.gameData.playerIds.push(playerId);
             this.saveGame();
         }
