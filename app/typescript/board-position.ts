@@ -1,5 +1,4 @@
-class BoardPosition {
-    constructor(public x: number, public y: number) { }
+class BoardPosition extends Phaser.Point {
 
     public getAdjacentPosition(direction: Direction) {
         switch (direction) {
@@ -12,5 +11,21 @@ class BoardPosition {
             case Direction.N:
                 return new BoardPosition(this.x - 1, this.y);
         }
+    }
+
+    /** Returns the center of the tile in pixel coordinates. */
+    public toCenterPixelPosition() {
+        let tile = map.getTile(this.x, this.y);
+        return new Phaser.Point(tile.centerX, tile.centerY);
+    }
+
+    /** Returns the top left of the tile in pixel coordinates. */
+    public toPixelPosition() {
+        let tile = map.getTile(this.x, this.y);
+        return new Phaser.Point(tile.x, tile.y);
+    }
+
+    public clone() {
+        return new BoardPosition(this.x, this.y);
     }
 }

@@ -35,6 +35,13 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
   <ItemGroup>
+    <Content Include="app\public\maps\Cross.json" />
+    <Content Include="app\assets\Cross.tmx" />
+    <Content Include="app\public\images\Laser Segment.png" />
+    <Content Include="app\public\images\Laser Small.png" />
+    <Content Include="app\public\images\player-card.png" />
+    <Content Include="app\public\images\robots.png" />
+    <Content Include="app\public\images\Spritesheet Small.png" />
     <Content Include="app\node_modules\phaser\typescript\typings.json" />
     <Content Include="package.json" />
     <Content Include="app\README.md" />
@@ -49,9 +56,12 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="app" />
+    <Folder Include="app\assets\" />
     <Folder Include="app\node_modules\" />
     <Folder Include="app\node_modules\phaser\" />
     <Folder Include="app\node_modules\phaser\typescript\" />
+    <Folder Include="app\public\images\" />
+    <Folder Include="app\public\maps\" />
     <Folder Include="app\typescript\" />
     <Folder Include="app\public" />
     <Folder Include="app\views" />
@@ -85,6 +95,7 @@
     <TypeScriptCompile Include="app\typescript\flag.ts" />
     <TypeScriptCompile Include="app\typescript\laser.ts" />
     <TypeScriptCompile Include="app\typescript\main.ts" />
+    <TypeScriptCompile Include="app\typescript\name-generator.ts" />
     <TypeScriptCompile Include="app\typescript\option-card.ts" />
     <TypeScriptCompile Include="app\typescript\program-card-type.ts">
       <SubType>Code</SubType>

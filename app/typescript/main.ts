@@ -18,19 +18,21 @@ class Main {
     }
 
     public preload() {
-        phaserGame.load.baseURL = 'https://cdn.glitch.com/';
-        phaserGame.load.crossOrigin = 'anonymous';
+        phaserGame.load.baseURL = '/';
+        //phaserGame.load.crossOrigin = 'anonymous';
 
-        phaserGame.load.image('laser', '389dcdd1-6e4d-4bcb-aedc-9d688fb06c3f%2FLaser%20Small.png?1491971767592');
-        phaserGame.load.image('tileset', '389dcdd1-6e4d-4bcb-aedc-9d688fb06c3f%2FSpritesheet%20Small.png?1491966800433');
-        phaserGame.load.tilemap('tilemap', '389dcdd1-6e4d-4bcb-aedc-9d688fb06c3f%2FCross.json?1491966835347', null, Phaser.Tilemap.TILED_JSON);
+        phaserGame.load.image('laser', 'images/Laser%20Small.png');
+        phaserGame.load.image('tileset', 'images/Spritesheet%20Small.png');
+        phaserGame.load.image('player-card', 'images/player-card.png');
+        phaserGame.load.spritesheet('robots', 'images/robots.png', 75, 75);
+        phaserGame.load.tilemap('tilemap', 'maps/Cross.json', null, Phaser.Tilemap.TILED_JSON);
     }
 
     public create() {
         map = phaserGame.add.tilemap('tilemap');
         map.addTilesetImage('RoboRallyOriginal', 'tileset');
-        map.createLayer('Tile Layer 1').resizeWorld();
-        map.createLayer('Tile Layer 2');
+        map.createLayer('Floor Layer').resizeWorld();
+        map.createLayer('Wall Layer');
     }
 
     public initGameObject() {
