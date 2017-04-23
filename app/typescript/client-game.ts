@@ -14,7 +14,6 @@
 
     public setSelfAsHost() {
         this.gameData.hostId = this.clientId;
-        this.addPlayer(this.clientId);
         this.saveGame();
     }
 
@@ -25,6 +24,7 @@
     public addPlayer(playerId: string) {
         if (this.gameData.playerIds.indexOf(playerId) == -1) {
             this.gameData.playerIds.push(playerId);
+            Board.Instance.onPlayerJoined(playerId);
             this.saveGame();
         }
     }

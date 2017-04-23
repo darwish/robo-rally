@@ -11,7 +11,7 @@ class Robot {
 
     readonly maxHealth = 10;
 
-    constructor(private _position: BoardPosition, public orientation: Direction, public lives: number, spriteIndex: number = Robot.pickRandomSprite(), health = 10) {
+    constructor(public playerID: string, private _position: BoardPosition, public orientation: Direction, public lives: number, spriteIndex: number = Robot.pickRandomSprite(), health = 10) {
 
         this.isPoweredDown = false;
         this.optionCards = [];
