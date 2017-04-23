@@ -113,6 +113,9 @@ class Board {
     }
 
     public runRobotProgram(robot: Robot, programAction: ProgramCard) {
+        if (!this.isPositionOnBoard(robot.position)) {
+            return;
+        }
         switch (programAction.type) {
             case ProgramCardType.ROTATE:
                 robot.rotate(programAction.distance);
@@ -136,10 +139,49 @@ class Board {
     private runConveyorBelts() {
         // move robots that are on conveyor belts
         for (let robot of this.robots) {
-            if (this.getTile(robot.position).isConveyorBelt()) {
-                // execute conveyor moves
+            if (!this.isConveyorStationaryBot(robot)) {
+                // move onto next tile
+                let moveDirection = this.getTile(robot.position).conveyorBeltMovementDirection();
+                this.moveRobotAlongConveyor(robot, moveDirection);
+                // perform conveyor rotation
+                let newTile = this.getTile(robot.position.getAdjacentPosition(moveDirection));
+                robot.rotate(newTile.conveyorBeltRotationFromDirection(DirectionUtil.opposite(moveDirection)))
             }
         }
+    }
+
+    private moveRobotAlongConveyor(robot: Robot, direction: Direction) {
+        let newPosition = robot.position.getAdjacentPosition(direction);
+        let tile: BoardTile = this.getTile(newPosition);
+        if ( !tile || tile.isPitTile() ) {
+            robot.removeFromBoard();
+        }
+    }
+
+    public isConveyorStationaryBot(robot: Robot) {
+        let tile = this.getTile(robot.position);
+        let nextTile = this.getTile(robot.position.getAdjacentPosition(tile.conveyorBeltMovementDirection()));
+
+        if (!tile.isConveyorBelt()) {
+            return true;
+        } else if (nextTile.isConveyorMerge()) {
+            let otherTile = nextTile.getOtherConveyorEntrance(tile);
+            let otherRobot = this.robotInPosition(otherTile.position);
+            if (otherRobot) {
+                return this.isConveyorStationaryBot(otherRobot);
+            }
+        }
+
+        return false;
+    }
+
+    public robotInPosition(position: BoardPosition) {
+        for (let robot of this.robots) {
+            if (robot.position.x == position.x && robot.position.y == position.y) {
+                return robot;
+            }
+        }
+        return false;
     }
 
     private runPushers(phase: number) {
