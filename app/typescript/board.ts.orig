@@ -20,29 +20,24 @@ class Board {
 
     private loadBoard() {
 
-        for (let object of this.map.objects) {
-
-            var x = Phaser.Math.snapToFloor(Math.floor(object.x), this.map.tileWidth);
-            var y = Phaser.Math.snapToFloor(Math.floor(object.y), this.map.tileHeight);
-            var position = new BoardPosition(x, y);
-
+        this.map.objects.forEach(object => {
             if (object.type == "Laser") {
-                var newLaser = new Laser(position, DirectionUtil.getDirection(object.rotation), object.count);
+                var newLaser = new Laser(new BoardPosition(object.x, object.y), DirectionUtil.getDirection(object.rotation), object.count);
                 this.lasers.push(newLaser);
             }
             else if (object.type == "Flag") {
-                var newFlag = new Flag(position, object.order);
+                var newFlag = new Flag(new BoardPosition(object.x, object.y), object.order);
                 this.flags.push(newFlag);
 
                 if (newFlag.order > Flag.highestOrder) {
                     Flag.highestOrder = newFlag.order;
                 }
             }
-        }
+        });
     }
 
-    public onPlayerJoined(playerID: PlayerID) {
-        var newRobot = new Robot(playerID.id, new BoardPosition(0, 0), 0, 3); // TODO: can't start all robots at the same place
+    public onPlayerJoined(playerID: string) {
+        var newRobot = new Robot(playerID, new BoardPosition(0, 0), 0, 3); // TODO: can't start all robots at the same place
         this.robots.push(newRobot);
     }
 
@@ -113,14 +108,15 @@ class Board {
         } else if (nextTile && nextTile.hasObstacleInDirection(DirectionUtil.opposite(direction))) {
             return true;
         }
+        else if ((tile.index == 16 || tile.index == 17)
+            && DirectionUtil.getDirection(tile.rotation + 90) == direction) {
+            return true;
+        }
 
         return false;
     }
 
     public runRobotProgram(robot: Robot, programAction: ProgramCard) {
-        if (!this.isPositionOnBoard(robot.position)) {
-            return;
-        }
         switch (programAction.type) {
             case ProgramCardType.ROTATE:
                 robot.rotate(programAction.distance);
@@ -144,62 +140,19 @@ class Board {
     private runConveyorBelts() {
         // move robots that are on conveyor belts
         for (let robot of this.robots) {
-            if (!this.isConveyorStationaryBot(robot)) {
-                // move onto next tile
-                let moveDirection = this.getTile(robot.position).conveyorBeltMovementDirection();
-                this.moveRobotAlongConveyor(robot, moveDirection);
-                // perform conveyor rotation
-                let newTile = this.getTile(robot.position.getAdjacentPosition(moveDirection));
-                robot.rotate(newTile.conveyorBeltRotationFromDirection(DirectionUtil.opposite(moveDirection)))
+            if (this.getTile(robot.position).isConveyorBelt()) {
+                // execute conveyor moves
             }
         }
     }
 
-    private moveRobotAlongConveyor(robot: Robot, direction: Direction) {
-        let newPosition = robot.position.getAdjacentPosition(direction);
-        let tile: BoardTile = this.getTile(newPosition);
-        if ( !tile || tile.isPitTile() ) {
-            robot.removeFromBoard();
-        }
-    }
-
-    public isConveyorStationaryBot(robot: Robot) {
-        let tile = this.getTile(robot.position);
-        let direction = tile.conveyorBeltMovementDirection();
-        if (!direction) {
-            return true;
-        }
-        let nextTile = this.getTile(robot.position.getAdjacentPosition(direction));
-
-        if (!tile.isConveyorBelt()) {
-            return true;
-        } else if (nextTile.isConveyorMerge()) {
-            let otherTile = nextTile.getOtherConveyorEntrance(tile);
-            let otherRobot = this.robotInPosition(otherTile.position);
-            if (otherRobot) {
-                return this.isConveyorStationaryBot(otherRobot);
-            }
-        }
-
-        return false;
-    }
-
-    public robotInPosition(position: BoardPosition) {
-        for (let robot of this.robots) {
-            if (robot.position.x == position.x && robot.position.y == position.y) {
-                return robot;
-            }
-        }
-        return false;
-    }
-
+<<<<<<< HEAD
+    private runPushers() {
+        // var tile: Phaser.Tile = this.map.getTile(tilePosition.x, tilePosition.y, " Layer");
+=======
     private runPushers(phase: number) {
         for (let robot of this.robots) {
             var tile: Phaser.Tile = this.map.getTile(robot.position.x, robot.position.y, "Wall Layer");
-            if (tile == null) {
-                continue;
-            }
-
             if (tile.index == 16 && phase % 2 == 1) {
                 this.attemptMoveRobot(robot, DirectionUtil.getDirection(tile.rotation + 90));
             }
@@ -207,6 +160,7 @@ class Board {
                 this.attemptMoveRobot(robot, DirectionUtil.getDirection(tile.rotation + 90));
             }
         }
+>>>>>>> 65ef364986e8a78b4c76220a0d4744e006e6e39c
     }
 
     private runGears() {
