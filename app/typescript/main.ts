@@ -163,8 +163,8 @@ class Main {
         if (Object.keys(this.playerSubmittedCards).length == clientGame.getPlayers().length) {
             var turns = [];
             for (let clientId in this.playerSubmittedCards) {
-                //Board.Instance.robots.filter((r) => r)
-                turns.push(new RobotTurn(this.robot, this.playerSubmittedCards[clientId]));
+                var robot = Board.Instance.robots.filter((r) => r.playerID == clientId)[0];
+                turns.push(new RobotTurn(robot, this.playerSubmittedCards[clientId]));
             }
             var turnLogic = new TurnLogic();
             turnLogic.run(turns);
@@ -188,6 +188,9 @@ function initRoboRally() {
 
         if (!clientGame.isHost()) {
             clientGame.loadOrJoin();
+        } else {
+            $('.startGame').removeClass('hidden').click(() => main.startGame());
+            clientGame.addPlayer(clientGame.clientId);
         }
         main.waitForPlayers();
     });

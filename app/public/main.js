@@ -1,6 +1,9 @@
 var Board = (function () {
     function Board(map) {
         this.map = map;
+        this.robots = [];
+        this.lasers = [];
+        this.flags = [];
         if (Board.Instance != null) {
             throw new Error("Board singleton already exists!");
         }
@@ -23,7 +26,8 @@ var Board = (function () {
             }
         });
     };
-    Board.prototype.addRobot = function (newRobot) {
+    Board.prototype.onPlayerJoined = function (playerID) {
+        var newRobot = new Robot(playerID, new BoardPosition(0, 0), 0, 3); // TODO: can't start all robots at the same place
         this.robots.push(newRobot);
     };
     Board.prototype.moveRobot = function (robot, distance, direction) {
@@ -39,8 +43,11 @@ var Board = (function () {
             }
         }
     };
-    Board.prototype.getTileType = function (position) {
-        return '';
+    Board.prototype.getTile = function (position) {
+        if (this.isPositionOnBoard(position)) {
+            return new BoardTile(this.map, position);
+        }
+        return null;
     };
     Board.prototype.isPositionOnBoard = function (position) {
         if (position.x < this.map.width &&
@@ -56,7 +63,8 @@ var Board = (function () {
             return false;
         }
         var newPosition = robot.position.getAdjacentPosition(direction);
-        if (!this.isPositionOnBoard(newPosition) || this.getTileType(newPosition) == "Pit") {
+        var tile = this.getTile(newPosition);
+        if (!tile || tile.isPitTile()) {
             robot.removeFromBoard();
             return true;
         }
@@ -74,27 +82,12 @@ var Board = (function () {
         }
     };
     Board.prototype.hasObstacleInDirection = function (tilePosition, direction) {
-        if (this.hasObstacleInDirectionInternal(tilePosition, direction)) {
+        var thisTile = this.getTile(tilePosition);
+        var nextTile = this.getTile(tilePosition.getAdjacentPosition(direction));
+        if (thisTile && thisTile.hasObstacleInDirection(direction)) {
             return true;
         }
-        else if (this.isPositionOnBoard(tilePosition.getAdjacentPosition(direction))
-            && this.hasObstacleInDirectionInternal(tilePosition.getAdjacentPosition(direction), DirectionUtil.opposite(direction))) {
-            return true;
-        }
-        return false;
-    };
-    Board.prototype.hasObstacleInDirectionInternal = function (tilePosition, direction) {
-        var tile = this.map.getTile(tilePosition.x, tilePosition.y, "Wall Layer");
-        if (tile.index == 12
-            && (DirectionUtil.getDirection(tile.rotation) == direction || DirectionUtil.getDirection(tile.rotation + 90) == direction)) {
-            return true;
-        }
-        else if (tile.index == 13
-            && DirectionUtil.getDirection(tile.rotation) == direction) {
-            return true;
-        }
-        else if ((tile.index == 16 || tile.index == 17)
-            && DirectionUtil.getDirection(tile.rotation + 90) == direction) {
+        else if (nextTile && nextTile.hasObstacleInDirection(DirectionUtil.opposite(direction))) {
             return true;
         }
         return false;
@@ -119,7 +112,12 @@ var Board = (function () {
         this.runGears();
     };
     Board.prototype.runConveyorBelts = function () {
-        // TODO:
+        // move robots that are on conveyor belts
+        for (var _i = 0, _a = this.robots; _i < _a.length; _i++) {
+            var robot = _a[_i];
+            if (this.getTile(robot.position).isConveyorBelt()) {
+            }
+        }
     };
     Board.prototype.runPushers = function (phase) {
         for (var _i = 0, _a = this.robots; _i < _a.length; _i++) {
@@ -183,6 +181,102 @@ var BoardPosition = (function () {
         }
     };
     return BoardPosition;
+}());
+var BoardTile = (function () {
+    function BoardTile(map, position) {
+        this.map = map;
+        this.position = position;
+    }
+    BoardTile.prototype.getPhaserTile = function (layerName) {
+        return this.map.getTile(this.position.x, this.position.y, layerName);
+    };
+    BoardTile.prototype.isPitTile = function () {
+        var tile = this.getPhaserTile("Floor Layer");
+        switch (tile.index) {
+            case 14:
+            case 15:
+            case 18:
+            case 19:
+                return true;
+            default:
+                return false;
+        }
+    };
+    BoardTile.prototype.isConveyorBelt = function () {
+        var tile = this.getPhaserTile("Floor Layer");
+        if (tile.index <= 7) {
+            return true;
+        }
+        return false;
+    };
+    BoardTile.prototype.isFastConveyorBelt = function () {
+        var tile = this.getPhaserTile("Floor Layer");
+        if (tile.index >= 4 && tile.index <= 7) {
+            return true;
+        }
+        return false;
+    };
+    BoardTile.prototype.hasObstacleInDirection = function (direction) {
+        var tile = this.getPhaserTile("Wall Layer");
+        if (tile.index == 12
+            && (DirectionUtil.getDirection(tile.rotation) == direction || DirectionUtil.getDirection(tile.rotation + 90) == direction)) {
+            return true;
+        }
+        else if (tile.index == 13
+            && DirectionUtil.getDirection(tile.rotation) == direction) {
+            return true;
+        }
+        else if ((tile.index == 16 || tile.index == 17)
+            && DirectionUtil.getDirection(tile.rotation + 90) == direction) {
+            return true;
+        }
+        return false;
+    };
+    BoardTile.prototype.conveyorBeltRotationFromDirection = function (direction) {
+        if (this.isConveyorBelt()) {
+            var phaserTile = this.getPhaserTile("Floor Layer");
+            if (phaserTile.index == 1 || phaserTile.index == 5) {
+                // rotates left from West
+                if (DirectionUtil.rotateDirection(Direction.W, phaserTile.rotation) == direction) {
+                    return -90;
+                }
+            }
+            else if (phaserTile.index == 2 || phaserTile.index == 6) {
+                // rotates right from South
+                if (DirectionUtil.rotateDirection(Direction.S, phaserTile.rotation) == direction) {
+                    return 90;
+                }
+            }
+            else if (phaserTile.index == 3 || phaserTile.index == 7) {
+                // rotates left from North
+                if (DirectionUtil.rotateDirection(Direction.N, phaserTile.rotation) == direction) {
+                    return -90;
+                }
+                // rotates right from South
+                if (DirectionUtil.rotateDirection(Direction.S, phaserTile.rotation) == direction) {
+                    return 90;
+                }
+            }
+        }
+    };
+    BoardTile.prototype.conveyorBeltMovementDirection = function () {
+        if (this.isConveyorBelt()) {
+            var phaserTile = this.getPhaserTile("Floor Layer");
+            switch (phaserTile.index) {
+                case 0:
+                case 2:
+                case 3:
+                case 4:
+                case 6:
+                case 7:
+                    return DirectionUtil.rotateDirection(Direction.E, phaserTile.rotation);
+                case 1:
+                case 5:
+                    return DirectionUtil.rotateDirection(Direction.N, phaserTile.rotation);
+            }
+        }
+    };
+    return BoardTile;
 }());
 var CardDeck = (function () {
     function CardDeck(cards) {
@@ -256,7 +350,6 @@ var ClientGame = (function () {
     }
     ClientGame.prototype.setSelfAsHost = function () {
         this.gameData.hostId = this.clientId;
-        this.addPlayer(this.clientId);
         this.saveGame();
     };
     ClientGame.prototype.isHost = function () {
@@ -265,6 +358,7 @@ var ClientGame = (function () {
     ClientGame.prototype.addPlayer = function (playerId) {
         if (this.gameData.playerIds.indexOf(playerId) == -1) {
             this.gameData.playerIds.push(playerId);
+            Board.Instance.onPlayerJoined(playerId);
             this.saveGame();
         }
     };
@@ -345,6 +439,21 @@ var DirectionUtil = (function () {
     };
     DirectionUtil.opposite = function (direction) {
         return DirectionUtil.clamp(direction + 2);
+    };
+    DirectionUtil.toDegrees = function (direction) {
+        switch (direction) {
+            case Direction.N:
+                return 0;
+            case Direction.E:
+                return 90;
+            case Direction.S:
+                return 180;
+            case Direction.W:
+                return 270;
+        }
+    };
+    DirectionUtil.rotateDirection = function (direction, angleInDegrees) {
+        return this.getDirection(this.toDegrees(direction) + angleInDegrees);
     };
     return DirectionUtil;
 }());
@@ -435,13 +544,13 @@ var Main = (function () {
         map.addTilesetImage('RoboRallyOriginal', 'tileset');
         map.createLayer('Tile Layer 1').resizeWorld();
         map.createLayer('Tile Layer 2');
+        new Board(map);
     };
     Main.prototype.initGameObject = function () {
         phaserGame = new Phaser.Game(900, 900, Phaser.AUTO, $('#gameContainer')[0], { preload: this.preload, create: this.create });
     };
     Main.prototype.waitForPlayers = function () {
         var _this = this;
-        this.initGameObject();
         this.showWaitingPlayers(clientGame);
         if (clientGame.isHost()) {
             socket.on('joined', function (clientId) {
@@ -492,8 +601,8 @@ var Main = (function () {
     Main.prototype.waitForAllSubmissions = function () {
         var _this = this;
         socket.on('submitTurn', function (submittedTurn) {
-            var submission = submittedTurn;
-            _this.playerSubmittedCards[submission.playerId] = submission.cards.map(function (c) { return new ProgramCard(c.type, c.distance, c.priority); });
+            _this.playerSubmittedCards[submittedTurn.playerId] = submittedTurn.cards.map(function (c) { return new ProgramCard(c.type, c.distance, c.priority); });
+            _this.checkForAllPlayerSubmissions();
         });
     };
     Main.prototype.showCards = function (cards) {
@@ -534,10 +643,27 @@ var Main = (function () {
             alert("You must choose 5 cards to submit. You've only chosen " + this.selectedCards.length + ".");
             return;
         }
+        this.playerSubmittedCards[clientGame.clientId] = this.selectedCards;
+        this.checkForAllPlayerSubmissions();
         socket.emit('submitTurn', {
             playerId: clientGame.clientId,
             cards: this.selectedCards
         });
+    };
+    Main.prototype.checkForAllPlayerSubmissions = function () {
+        if (Object.keys(this.playerSubmittedCards).length == clientGame.getPlayers().length) {
+            var turns = [];
+            var _loop_1 = function (clientId) {
+                robot = Board.Instance.robots.filter(function (r) { return r.playerID == clientId; })[0];
+                turns.push(new RobotTurn(robot, this_1.playerSubmittedCards[clientId]));
+            };
+            var this_1 = this, robot;
+            for (var clientId in this.playerSubmittedCards) {
+                _loop_1(clientId);
+            }
+            var turnLogic = new TurnLogic();
+            turnLogic.run(turns);
+        }
     };
     return Main;
 }());
@@ -550,11 +676,9 @@ function initRoboRally() {
         $('.code').text(gameId);
         $('.gameInfo').show();
         new QRCode($(".qrcode")[0], { text: "https://robo-rally.glitch.me/g/" + gameId, width: 66, height: 66 });
+        main.initGameObject();
         if (!clientGame.isHost()) {
             clientGame.loadOrJoin();
-        }
-        if (clientGame.isHost()) {
-            $('.startGame').removeClass('hidden').click(function () { return main.startGame(); });
         }
         main.waitForPlayers();
     });
@@ -606,7 +730,8 @@ var ProgramCardType;
     ProgramCardType[ProgramCardType["ROTATE"] = 1] = "ROTATE";
 })(ProgramCardType || (ProgramCardType = {}));
 var Robot = (function () {
-    function Robot(position, orientation, lives, health) {
+    function Robot(playerID, position, orientation, lives, health) {
+        this.playerID = playerID;
         this.position = position;
         this.orientation = orientation;
         this.lives = lives;
