@@ -1,7 +1,10 @@
-﻿class ClientGame {
-    public clientId: string;
-    public friendlyName: string;
-    private gameData: any;
+﻿class PlayerID {
+    constructor(public id: string, public friendlyName: string) { }
+}
+
+class ClientGame {
+    public clientId: PlayerID;
+    private gameData: { gameId: string, hostId?: PlayerID, playerIds: PlayerID[] };
 
     constructor(public gameId: string) {
         this.getOrCreateClientId();
@@ -18,10 +21,10 @@
     }
 
     public isHost() {
-        return this.gameData.hostId == this.clientId;
+        return this.gameData.hostId && this.gameData.hostId.id == this.clientId.id;
     }
 
-    public addPlayer(playerId: string) {
+    public addPlayer(playerId: PlayerID) {
         if (this.gameData.playerIds.indexOf(playerId) == -1) {
             this.gameData.playerIds.push(playerId);
             setTimeout(() => Board.Instance.onPlayerJoined(playerId), 20); // Less race condition, more technical debt
@@ -29,11 +32,11 @@
         }
     }
 
-    public getPlayers(): string[] {
+    public getPlayers(): PlayerID[] {
         return this.gameData.playerIds;
     }
 
-    public setPlayers(players: string[]) {
+    public setPlayers(players: PlayerID[]) {
         this.gameData.playerIds = players;
         this.saveGame();
     }
@@ -54,23 +57,25 @@
         }
 
         this.gameData = JSON.parse(localStorage['Game_' + this.gameId]);
-        socket.emit('join', { gameId: this.gameId, clientId: this.clientId, friendlyName: this.friendlyName });
+        socket.emit('join', { gameId: this.gameId, clientId: this.clientId});
         // TODO: load state
 
         return true;
     }
 
     public joinGame() {
-        socket.emit('join', { gameId: this.gameId, clientId: this.clientId, friendlyName: this.friendlyName  });
+        socket.emit('join', { gameId: this.gameId, clientId: this.clientId });
     }
 
     private getOrCreateClientId() {
+        this.clientId = new PlayerID(null, null);
+
         if ('clientId' in localStorage) {
-            this.clientId = localStorage['clientId'];
-            this.friendlyName = localStorage['friendlyName'];
+            this.clientId.id = localStorage['clientId'];
+            this.clientId.friendlyName  = localStorage['friendlyName'];
         } else {
-            this.clientId = localStorage['clientId'] = Guid.newGuid();
-            this.friendlyName = localStorage['friendlyName'] = generateName();
+            this.clientId.id  = localStorage['clientId'] = Guid.newGuid();
+            this.clientId.friendlyName  = localStorage['friendlyName'] = generateName();
        }
     }
 }

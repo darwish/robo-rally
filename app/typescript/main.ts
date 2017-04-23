@@ -69,7 +69,7 @@ class Main {
 
     public showWaitingPlayers(clientGame: ClientGame) {
         var list = clientGame.getPlayers().map((playerid) => {
-            return '<li>' + playerid + '</li>';
+            return '<li>' + playerid.friendlyName + '</li>';
         }).join('');
         $('.playersList').html(list);
     }
@@ -87,7 +87,7 @@ class Main {
 
         var handData = {};
         for (let i = 0; i < players.length; i++) {
-            handData[players[i]] = hands[i];
+            handData[players[i].id] = hands[i];
         }
         socket.emit('dealtCards', handData);
 
@@ -102,7 +102,7 @@ class Main {
         socket.on('dealtCards', (handData) => {
             socket.off('dealtCards');
 
-            var cardData = handData[clientGame.clientId];
+            var cardData = handData[clientGame.clientId.id];
             this.cards = cardData.map((c) => new ProgramCard(c.type, c.distance, c.priority));
             this.showCards(this.cards);
 
@@ -160,7 +160,7 @@ class Main {
             return;
         }
 
-        this.playerSubmittedCards[clientGame.clientId] = this.selectedCards;
+        this.playerSubmittedCards[clientGame.clientId.id] = this.selectedCards;
         this.checkForAllPlayerSubmissions();
 
         socket.emit('submitTurn', {
