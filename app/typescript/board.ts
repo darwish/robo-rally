@@ -20,7 +20,7 @@ class Board {
 
     private loadBoard() {
 
-        this.map.objects.forEach(object => {
+        for (let object of this.map.objects) {
             if (object.type == "Laser") {
                 var newLaser = new Laser(new BoardPosition(object.x, object.y), DirectionUtil.getDirection(object.rotation), object.count);
                 this.lasers.push(newLaser);
@@ -33,7 +33,7 @@ class Board {
                     Flag.highestOrder = newFlag.order;
                 }
             }
-        });
+        }
     }
 
     public onPlayerJoined(playerID: string) {

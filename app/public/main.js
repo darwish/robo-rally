@@ -11,20 +11,20 @@ var Board = (function () {
         this.loadBoard();
     }
     Board.prototype.loadBoard = function () {
-        var _this = this;
-        this.map.objects.forEach(function (object) {
+        for (var _i = 0, _a = this.map.objects; _i < _a.length; _i++) {
+            var object = _a[_i];
             if (object.type == "Laser") {
                 var newLaser = new Laser(new BoardPosition(object.x, object.y), DirectionUtil.getDirection(object.rotation), object.count);
-                _this.lasers.push(newLaser);
+                this.lasers.push(newLaser);
             }
             else if (object.type == "Flag") {
                 var newFlag = new Flag(new BoardPosition(object.x, object.y), object.order);
-                _this.flags.push(newFlag);
+                this.flags.push(newFlag);
                 if (newFlag.order > Flag.highestOrder) {
                     Flag.highestOrder = newFlag.order;
                 }
             }
-        });
+        }
     };
     Board.prototype.onPlayerJoined = function (playerID) {
         var newRobot = new Robot(playerID, new BoardPosition(0, 0), 0, 3); // TODO: can't start all robots at the same place
@@ -576,6 +576,8 @@ var Main = (function () {
         $('.playersList').html(list);
     };
     Main.prototype.startGame = function () {
+        $('.startGame').addClass("hidden");
+        $('.quitGame').removeClass("hidden");
         socket.off('joined');
         socket.off('broadcastPlayers');
         var players = clientGame.getPlayers();
@@ -587,6 +589,9 @@ var Main = (function () {
         }
         socket.emit('dealtCards', handData);
         this.showCards(hands[0]);
+    };
+    Main.prototype.quitGame = function () {
+        window.location.href = "/";
     };
     Main.prototype.waitForCards = function () {
         var _this = this;
@@ -680,8 +685,14 @@ function initRoboRally() {
         if (!clientGame.isHost()) {
             clientGame.loadOrJoin();
         }
+        else {
+            $('.startGame').removeClass('hidden').click(function () { return main.startGame(); });
+            clientGame.addPlayer(clientGame.clientId);
+        }
         main.waitForPlayers();
     });
+    $('.startGame').click(function () { return main.startGame(); });
+    $('.quitGame').click(function () { return main.quitGame(); });
     $('.cardContainer').on('click', '.cardChoice', function () { main.chooseCard(this); });
     $('.submitCards').click(function () { return main.submitSelectedCards(); });
 }
