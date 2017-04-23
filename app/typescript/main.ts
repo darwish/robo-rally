@@ -7,7 +7,7 @@ declare var QRCode: any;
 declare var clientGame: ClientGame;
 declare var socket: SocketIOClient.Socket;
 
-var phaserGame: Phaser.Game, map: Phaser.Tilemap;
+var phaserGame: Phaser.Game, map: Phaser.Tilemap, board:Board;
 
 class Main {
     public globalCardDeck: CardDeck;
@@ -36,7 +36,8 @@ class Main {
         map.createLayer('Floor Layer').resizeWorld();
         map.createLayer('Wall Layer');
 
-        new Board(map);
+        board = new Board(map);
+        initRoboRally();
     }
 
     public initGameObject() {
@@ -181,10 +182,15 @@ class Main {
     }
 }
 
+var main: Main;
+function startGame() {
+    main = new Main();
+    main.initGameObject();
+}
+
 function initRoboRally() {
     var gameId = location.pathname.match(/^\/g\/(\w+)/)[1];
 
-    var main = new Main();
     clientGame = new ClientGame(gameId);
     socket = io();
 
@@ -193,7 +199,7 @@ function initRoboRally() {
         $('.gameInfo').show();
         new QRCode($(".qrcode")[0], { text: "https://robo-rally.glitch.me/g/" + gameId, width: 66, height: 66 });
 
-        main.initGameObject();
+
 
         if (!clientGame.isHost()) {
             clientGame.loadOrJoin();
@@ -210,3 +216,4 @@ function initRoboRally() {
     $('.cardContainer').on('click', '.cardChoice', function () { main.chooseCard(this); });
     $('.submitCards').click(() => main.submitSelectedCards());
 }
+
