@@ -24,7 +24,7 @@
     public addPlayer(playerId: string) {
         if (this.gameData.playerIds.indexOf(playerId) == -1) {
             this.gameData.playerIds.push(playerId);
-            Board.Instance.onPlayerJoined(playerId);
+            setTimeout(() => Board.Instance.onPlayerJoined(playerId), 20);
             this.saveGame();
         }
     }

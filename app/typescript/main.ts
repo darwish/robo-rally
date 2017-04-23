@@ -197,7 +197,8 @@ function initRoboRally() {
 
         if (!clientGame.isHost()) {
             clientGame.loadOrJoin();
-        } else {
+        }
+        if (clientGame.isHost()) {
             $('.startGame').removeClass('hidden').click(() => main.startGame());
             clientGame.addPlayer(clientGame.clientId);
         }
