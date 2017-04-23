@@ -60,12 +60,14 @@ class Board {
             } catch (e) {
                 // continue attempting to move, so we can animate each attempt
             }
-            
         }
     }
 
-    public getTileType(position: BoardPosition) {
-        return '';
+    public getTile(position: BoardPosition) {
+        if (this.isPositionOnBoard(position)) {
+            return new BoardTile(this.map, position);
+        }
+        return null;
     }
 
     public isPositionOnBoard(position: BoardPosition) {
@@ -85,7 +87,8 @@ class Board {
         }
 
         let newPosition = robot.position.getAdjacentPosition(direction);
-        if (!this.isPositionOnBoard(newPosition) || this.getTileType(newPosition) == "Pit") {
+        let tile: BoardTile = this.getTile(newPosition);
+        if ( !tile || tile.isPitTile() ) {
             robot.removeFromBoard();
             return;
         }
@@ -104,25 +107,12 @@ class Board {
 
     public hasObstacleInDirection(tilePosition: BoardPosition, direction: Direction) {
 
-        if (this.hasObstacleInDirectionInternal(tilePosition, direction)) {
-            return true;
-        }
-        else if (this.isPositionOnBoard(tilePosition.getAdjacentPosition(direction))
-            && this.hasObstacleInDirectionInternal(tilePosition.getAdjacentPosition(direction), DirectionUtil.opposite(direction))) {
-            return true;
-        }
+        let thisTile: BoardTile = this.getTile(tilePosition);
+        let nextTile: BoardTile = this.getTile(tilePosition.getAdjacentPosition(direction));
 
-        return false;
-    }
-
-    private hasObstacleInDirectionInternal(tilePosition: BoardPosition, direction: Direction) {
-        var tile: Phaser.Tile = this.map.getTile(tilePosition.x, tilePosition.y, "Wall Layer");
-        if (tile.index == 12
-            && (DirectionUtil.getDirection(tile.rotation) == direction || DirectionUtil.getDirection(tile.rotation + 90) == direction)) {
+        if (thisTile && thisTile.hasObstacleInDirection(direction)) {
             return true;
-        }
-        else if (tile.index == 13
-            && DirectionUtil.getDirection(tile.rotation) == direction) {
+        } else if (nextTile && nextTile.hasObstacleInDirection(DirectionUtil.opposite(direction))) {
             return true;
         }
 
@@ -151,11 +141,16 @@ class Board {
     }
 
     private runConveyorBelts() {
-        // TODO:
+        // move robots that are on conveyor belts
+        for (let robot of this.robots) {
+            if (this.getTile(robot.position).isConveyorBelt()) {
+                // execute conveyor moves
+            }
+        }
     }
 
     private runPushers() {
-        // TODO:
+        // var tile: Phaser.Tile = this.map.getTile(tilePosition.x, tilePosition.y, " Layer");
     }
 
     private runGears() {
