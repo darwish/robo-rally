@@ -108,10 +108,6 @@ class Board {
         } else if (nextTile && nextTile.hasObstacleInDirection(DirectionUtil.opposite(direction))) {
             return true;
         }
-        else if ((tile.index == 16 || tile.index == 17)
-            && DirectionUtil.getDirection(tile.rotation + 90) == direction) {
-            return true;
-        }
 
         return false;
     }

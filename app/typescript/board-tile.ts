@@ -43,6 +43,10 @@ class BoardTile {
             && DirectionUtil.getDirection(tile.rotation) == direction) {
             return true;
         }
+        else if ((tile.index == 16 || tile.index == 17)
+            && DirectionUtil.getDirection(tile.rotation + 90) == direction) {
+            return true;
+        }
 
         return false;
     }
