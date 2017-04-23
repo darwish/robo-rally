@@ -35,6 +35,10 @@ header h1 {
     padding: 10px;
 }
 
+.playersList .submitted {
+    font-weight: bold;
+}
+
 .cardChoice {
     cursor: pointer;
 }
