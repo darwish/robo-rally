@@ -1,3 +1,8 @@
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
 var Board = (function () {
     function Board(map) {
         this.map = map;
@@ -163,10 +168,10 @@ var Board = (function () {
     };
     return Board;
 }());
-var BoardPosition = (function () {
-    function BoardPosition(x, y) {
-        this.x = x;
-        this.y = y;
+var BoardPosition = (function (_super) {
+    __extends(BoardPosition, _super);
+    function BoardPosition() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
     BoardPosition.prototype.getAdjacentPosition = function (direction) {
         switch (direction) {
@@ -180,8 +185,21 @@ var BoardPosition = (function () {
                 return new BoardPosition(this.x - 1, this.y);
         }
     };
+    /** Returns the center of the tile in pixel coordinates. */
+    BoardPosition.prototype.toCenterPixelPosition = function () {
+        var tile = map.getTile(this.x, this.y);
+        return new Phaser.Point(tile.centerX, tile.centerY);
+    };
+    /** Returns the top left of the tile in pixel coordinates. */
+    BoardPosition.prototype.toPixelPosition = function () {
+        var tile = map.getTile(this.x, this.y);
+        return new Phaser.Point(tile.x, tile.y);
+    };
+    BoardPosition.prototype.clone = function () {
+        return new BoardPosition(this.x, this.y);
+    };
     return BoardPosition;
-}());
+}(Phaser.Point));
 var BoardTile = (function () {
     function BoardTile(map, position) {
         this.map = map;
@@ -533,17 +551,19 @@ var Main = (function () {
         this.globalCardDeck = CardDeck.newDeck();
     }
     Main.prototype.preload = function () {
-        phaserGame.load.baseURL = 'https://cdn.glitch.com/';
-        phaserGame.load.crossOrigin = 'anonymous';
-        phaserGame.load.image('laser', '389dcdd1-6e4d-4bcb-aedc-9d688fb06c3f%2FLaser%20Small.png?1491971767592');
-        phaserGame.load.image('tileset', '389dcdd1-6e4d-4bcb-aedc-9d688fb06c3f%2FSpritesheet%20Small.png?1491966800433');
-        phaserGame.load.tilemap('tilemap', '389dcdd1-6e4d-4bcb-aedc-9d688fb06c3f%2FCross.json?1491966835347', null, Phaser.Tilemap.TILED_JSON);
+        phaserGame.load.baseURL = '/';
+        //phaserGame.load.crossOrigin = 'anonymous';
+        phaserGame.load.image('laser', 'images/Laser%20Small.png');
+        phaserGame.load.image('tileset', 'images/Spritesheet%20Small.png');
+        phaserGame.load.image('player-card', 'images/player-card.png');
+        phaserGame.load.spritesheet('robots', 'images/robots.png', 75, 75);
+        phaserGame.load.tilemap('tilemap', 'maps/Cross.json', null, Phaser.Tilemap.TILED_JSON);
     };
     Main.prototype.create = function () {
         map = phaserGame.add.tilemap('tilemap');
         map.addTilesetImage('RoboRallyOriginal', 'tileset');
-        map.createLayer('Tile Layer 1').resizeWorld();
-        map.createLayer('Tile Layer 2');
+        map.createLayer('Floor Layer').resizeWorld();
+        map.createLayer('Wall Layer');
         new Board(map);
     };
     Main.prototype.initGameObject = function () {
@@ -741,26 +761,54 @@ var ProgramCardType;
     ProgramCardType[ProgramCardType["ROTATE"] = 1] = "ROTATE";
 })(ProgramCardType || (ProgramCardType = {}));
 var Robot = (function () {
-    function Robot(playerID, position, orientation, lives, health) {
+    function Robot(playerID, _position, orientation, lives, spriteIndex, health) {
+        if (spriteIndex === void 0) { spriteIndex = Robot.pickRandomSprite(); }
+        if (health === void 0) { health = 10; }
         this.playerID = playerID;
-        this.position = position;
+        this._position = _position;
         this.orientation = orientation;
         this.lives = lives;
-        this.health = health;
         this.maxHealth = 10;
-        if (health == undefined) {
-            this.health = this.maxHealth;
-        }
         this.isPoweredDown = false;
         this.optionCards = [];
         this.lockedRegisters = [false, false, false, false, false];
         this.availableProgramCards = [];
         this.registeredProgramCards = [];
         this.lastFlagOrder = 0;
+        var pixelPos = _position.toPixelPosition();
+        this.sprite = phaserGame.add.sprite(pixelPos.x, pixelPos.y, 'robots');
+        this.sprite.frame = spriteIndex;
+        this.sprite.maxHealth = this.maxHealth;
+        this.sprite.health = health;
     }
     Robot.prototype.rotate = function (quarterRotationsCW) {
         this.orientation = DirectionUtil.clamp(this.orientation + quarterRotationsCW);
     };
+    Robot.pickRandomSprite = function () {
+        return Math.floor(Math.random() * phaserGame.cache.getFrameCount('robots'));
+    };
+    Object.defineProperty(Robot.prototype, "health", {
+        get: function () {
+            return this.sprite.health;
+        },
+        set: function (val) {
+            this.sprite.health = val;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Robot.prototype, "position", {
+        get: function () {
+            return this._position;
+        },
+        set: function (val) {
+            this._position = val.clone();
+            this.sprite.position = val.toPixelPosition();
+            this.sprite.visible = true;
+        },
+        enumerable: true,
+        configurable: true
+    });
     Robot.prototype.isDead = function () {
         return this.health <= 0;
     };
@@ -801,8 +849,9 @@ var Robot = (function () {
         }
     };
     Robot.prototype.removeFromBoard = function () {
-        this.position.x = undefined;
-        this.position.y = undefined;
+        this._position.x = undefined;
+        this._position.y = undefined;
+        this.sprite.visible = false;
     };
     return Robot;
 }());

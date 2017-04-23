@@ -76,6 +76,7 @@
     <TypeScriptCompile Include="app\node_modules\phaser\typescript\phaser.comments.d.ts" />
     <TypeScriptCompile Include="app\node_modules\phaser\typescript\pixi.comments.d.ts" />
     <TypeScriptCompile Include="app\typescript\board-position.ts" />
+    <TypeScriptCompile Include="app\typescript\board-tile.ts" />
     <TypeScriptCompile Include="app\typescript\board.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
