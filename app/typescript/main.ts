@@ -33,6 +33,8 @@ class Main {
         map.addTilesetImage('RoboRallyOriginal', 'tileset');
         map.createLayer('Tile Layer 1').resizeWorld();
         map.createLayer('Tile Layer 2');
+
+        new Board(map);
     }
 
     public initGameObject() {
@@ -40,8 +42,6 @@ class Main {
     }
 
     public waitForPlayers() {
-        this.initGameObject();
-
         this.showWaitingPlayers(clientGame);
 
         if (clientGame.isHost()) {
@@ -184,13 +184,11 @@ function initRoboRally() {
         $('.gameInfo').show();
         new QRCode($(".qrcode")[0], { text: "https://robo-rally.glitch.me/g/" + gameId, width: 66, height: 66 });
 
+        main.initGameObject();
+
         if (!clientGame.isHost()) {
             clientGame.loadOrJoin();
         }
-        if (clientGame.isHost()) {
-            $('.startGame').removeClass('hidden').click(() => main.startGame());
-        }
-
         main.waitForPlayers();
     });
 
