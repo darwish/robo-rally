@@ -33,6 +33,55 @@ class BoardTile {
         return false;
     }
 
+    public isConveyorMerge() {
+        let tile: Phaser.Tile = this.getPhaserTile("Floor Layer");
+
+        switch (tile.index) {
+            case 2:
+            case 3:
+            case 6:
+            case 7:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    public getOtherConveyorEntrance(tile: BoardTile) {
+        for (let position of this.getConveyorEntrances()) {
+            if (tile.position.x != position.x || tile.position.y != position.y) {
+                return new BoardTile(this.map, position);
+            }
+        }
+    }
+
+    protected getConveyorEntrances() {
+        let entrances: BoardTile[];
+        let tile = this.getPhaserTile("Floor Layer");
+
+        switch (tile.index) {
+            case 0:
+            case 1:
+            case 4:
+            case 5:
+                return [
+                    this.position.getAdjacentPosition(DirectionUtil.rotateDirection(Direction.W, tile.rotation))
+                ];
+            case 2:
+            case 6:
+                return [
+                    this.position.getAdjacentPosition(DirectionUtil.rotateDirection(Direction.W, tile.rotation)),
+                    this.position.getAdjacentPosition(DirectionUtil.rotateDirection(Direction.S, tile.rotation))
+                ];
+            case 3:
+            case 7:
+                return [
+                    this.position.getAdjacentPosition(DirectionUtil.rotateDirection(Direction.N, tile.rotation)),
+                    this.position.getAdjacentPosition(DirectionUtil.rotateDirection(Direction.S, tile.rotation))
+                ];
+        }
+    }
+
     public hasObstacleInDirection(direction: Direction) {
         var tile: Phaser.Tile = this.getPhaserTile("Wall Layer");
         if (tile == null) {
@@ -61,24 +110,26 @@ class BoardTile {
             if (phaserTile.index == 1 || phaserTile.index == 5) {
                 // rotates left from West
                 if (DirectionUtil.rotateDirection(Direction.W, phaserTile.rotation) == direction) {
-                    return -90;
+                    return -1;
                 }
             } else if (phaserTile.index == 2 || phaserTile.index == 6) {
                 // rotates right from South
                 if (DirectionUtil.rotateDirection(Direction.S, phaserTile.rotation) == direction) {
-                    return 90;
+                    return 1;
                 }
             } else if (phaserTile.index == 3 || phaserTile.index == 7) {
                 // rotates left from North
                 if (DirectionUtil.rotateDirection(Direction.N, phaserTile.rotation) == direction) {
-                    return -90;
+                    return -1;
                 }
                 // rotates right from South
                 if (DirectionUtil.rotateDirection(Direction.S, phaserTile.rotation) == direction) {
-                    return 90;
+                    return 1;
                 }
             }
         }
+        
+        return 0;
     }
 
     public conveyorBeltMovementDirection() {

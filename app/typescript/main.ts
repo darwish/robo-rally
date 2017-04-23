@@ -68,10 +68,12 @@ class Main {
     }
 
     public showWaitingPlayers(clientGame: ClientGame) {
-        var list = clientGame.getPlayers().map((playerid) => {
-            return '<li>' + playerid + '</li>';
-        }).join('');
-        $('.playersList').html(list);
+        $('.playersList').empty();
+        clientGame.getPlayers().forEach((player) => {
+            var playerItem = $('<li class="playerItem">' + player.friendlyName + '</li>');
+            playerItem.data('player', player);
+            $('.playersList').append(playerItem);
+        });
     }
 
     public startGame() {
@@ -87,11 +89,12 @@ class Main {
 
         var handData = {};
         for (let i = 0; i < players.length; i++) {
-            handData[players[i]] = hands[i];
+            handData[players[i].id] = hands[i];
         }
         socket.emit('dealtCards', handData);
 
         this.showCards(hands[0]);
+        this.waitForAllSubmissions();
     }
 
     public quitGame() {
@@ -102,7 +105,7 @@ class Main {
         socket.on('dealtCards', (handData) => {
             socket.off('dealtCards');
 
-            var cardData = handData[clientGame.clientId];
+            var cardData = handData[clientGame.clientId.id];
             this.cards = cardData.map((c) => new ProgramCard(c.type, c.distance, c.priority));
             this.showCards(this.cards);
 
@@ -113,6 +116,9 @@ class Main {
     public waitForAllSubmissions() {
         socket.on('submitTurn', (submittedTurn) => {
             this.playerSubmittedCards[submittedTurn.playerId] = submittedTurn.cards.map((c) => new ProgramCard(c.type, c.distance, c.priority));
+
+            $('.playersList .playerItem').filter(function () { return $(this).data('player') == submittedTurn.playerId; }).addClass('submitted');
+
             this.checkForAllPlayerSubmissions();
         });
     }
@@ -121,7 +127,6 @@ class Main {
         $('.statusText').html('Choose Your Cards');
 
         $('.cardContainer').empty();
-        cards.forEach
         cards.forEach((card) => {
             var cardChoice = $('<li class="cardChoice">' + card.toString() + '</li>');
             cardChoice.data('card', card);
@@ -160,7 +165,7 @@ class Main {
             return;
         }
 
-        this.playerSubmittedCards[clientGame.clientId] = this.selectedCards;
+        this.playerSubmittedCards[clientGame.clientId.id] = this.selectedCards;
         this.checkForAllPlayerSubmissions();
 
         socket.emit('submitTurn', {
