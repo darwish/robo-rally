@@ -40,8 +40,6 @@ class Main {
     }
 
     public waitForPlayers() {
-        this.initGameObject();
-
         this.showWaitingPlayers(clientGame);
 
         if (clientGame.isHost()) {
@@ -124,9 +122,15 @@ function initRoboRally() {
         $('.gameInfo').show();
         new QRCode($(".qrcode")[0], { text: "https://robo-rally.glitch.me/g/" + gameId, width: 66, height: 66 });
 
+        main.initGameObject();
+
         if (!clientGame.isHost()) {
             clientGame.loadOrJoin();
         }
+        else {
+            clientGame.addPlayer(clientGame.clientId);
+        }
+
         main.waitForPlayers();
     });
 

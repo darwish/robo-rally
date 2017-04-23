@@ -14,7 +14,6 @@
 
     public setSelfAsHost() {
         this.gameData.hostId = this.clientId;
-        this.addPlayer(this.clientId);
         this.saveGame();
     }
 

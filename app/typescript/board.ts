@@ -2,10 +2,10 @@ class Board {
 
     static Instance: Board
 
-    public robots: Robot[];
+    public robots: Robot[] = [];
 
-    private lasers: Laser[];
-    private flags: Flag[];
+    private lasers: Laser[] = [];
+    private flags: Flag[] = [];
 
     constructor(public map: Phaser.Tilemap)
     {
