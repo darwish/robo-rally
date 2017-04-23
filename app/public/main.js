@@ -376,7 +376,7 @@ var ClientGame = (function () {
     ClientGame.prototype.addPlayer = function (playerId) {
         if (this.gameData.playerIds.indexOf(playerId) == -1) {
             this.gameData.playerIds.push(playerId);
-            Board.Instance.onPlayerJoined(playerId);
+            setTimeout(function () { return Board.Instance.onPlayerJoined(playerId); }, 20); // Less race condition, more technical debt
             this.saveGame();
         }
     };
@@ -543,7 +543,7 @@ var Laser = (function () {
 /// <reference path="../../typings/phaser/phaser.comments.d.ts"/>
 /// <reference path="../../typings/jquery/jquery.d.ts"/>
 /// <reference path="../../typings/socket.io-client/socket.io-client.d.ts"/>
-var phaserGame, map;
+var phaserGame, map, board;
 var Main = (function () {
     function Main() {
         this.selectedCards = [];
@@ -564,7 +564,8 @@ var Main = (function () {
         map.addTilesetImage('RoboRallyOriginal', 'tileset');
         map.createLayer('Floor Layer').resizeWorld();
         map.createLayer('Wall Layer');
-        new Board(map);
+        board = new Board(map);
+        initRoboRally();
     };
     Main.prototype.initGameObject = function () {
         phaserGame = new Phaser.Game(900, 900, Phaser.AUTO, $('#gameContainer')[0], { preload: this.preload, create: this.create });
@@ -692,25 +693,26 @@ var Main = (function () {
     };
     return Main;
 }());
+var main;
+function startGame() {
+    main = new Main();
+    main.initGameObject();
+}
 function initRoboRally() {
     var gameId = location.pathname.match(/^\/g\/(\w+)/)[1];
-    var main = new Main();
     clientGame = new ClientGame(gameId);
     socket = io();
-    $(window).load(function () {
-        $('.code').text(gameId);
-        $('.gameInfo').show();
-        new QRCode($(".qrcode")[0], { text: "https://robo-rally.glitch.me/g/" + gameId, width: 66, height: 66 });
-        main.initGameObject();
-        if (!clientGame.isHost()) {
-            clientGame.loadOrJoin();
-        }
-        else {
-            $('.startGame').removeClass('hidden').click(function () { return main.startGame(); });
-            clientGame.addPlayer(clientGame.clientId);
-        }
-        main.waitForPlayers();
-    });
+    $('.code').text(gameId);
+    $('.gameInfo').show();
+    new QRCode($(".qrcode")[0], { text: "https://robo-rally.glitch.me/g/" + gameId, width: 66, height: 66 });
+    if (!clientGame.isHost()) {
+        clientGame.loadOrJoin();
+    }
+    if (clientGame.isHost()) {
+        $('.startGame').removeClass('hidden').click(function () { return main.startGame(); });
+        clientGame.addPlayer(clientGame.clientId);
+    }
+    main.waitForPlayers();
     $('.startGame').click(function () { return main.startGame(); });
     $('.quitGame').click(function () { return main.quitGame(); });
     $('.cardContainer').on('click', '.cardChoice', function () { main.chooseCard(this); });
