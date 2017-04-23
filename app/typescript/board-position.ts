@@ -16,7 +16,7 @@ class BoardPosition extends Phaser.Point {
     /** Returns the center of the tile in pixel coordinates. */
     public toCenterPixelPosition() {
         let tile = map.getTile(this.x, this.y);
-        return new Phaser.Point(tile.centerX, tile.centerY);
+        return new Phaser.Point(tile.centerX + tile.worldX, tile.centerY + tile.worldY);
     }
 
     /** Returns the top left of the tile in pixel coordinates. */

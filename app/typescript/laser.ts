@@ -1,12 +1,16 @@
 ﻿class Laser {
+    public sprite: Phaser.Sprite;
 
     constructor(public position: BoardPosition, public facingDirection: Direction, public damagePower: number) {
+        let pixelPos = position.toPixelPosition();
+        this.sprite = phaserGame.add.sprite(pixelPos.x, pixelPos.y, 'laser-emitter');
+        this.sprite.angle = DirectionUtil.toDegrees(facingDirection);
     }
 
     public fire() {
         var robots = Board.Instance.robots;
 
-        var closestFacingRobot = null;
+        var closestFacingRobot:Robot = null;
         for (var i = 0; i < robots.length; i++) {
 
             if (this.facingDirection == Direction.E
@@ -39,6 +43,9 @@
             }
         }
 
-        closestFacingRobot.dealDamage(this.damagePower);
+        if (closestFacingRobot) {
+            closestFacingRobot.dealDamage(this.damagePower);
+            laserProjectile.fire(this.position, closestFacingRobot.position.x, closestFacingRobot.position.y);
+        }
     }
 }

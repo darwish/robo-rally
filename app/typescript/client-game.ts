@@ -28,8 +28,8 @@ class ClientGame {
         if (!this.gameData.playerIds.some(x => x.id == playerId.id)) {
             this.gameData.playerIds.push(playerId);
             this.saveGame();
+            Board.Instance.onPlayerJoined(playerId);
         }
-        Board.Instance.onPlayerJoined(playerId);
     }
 
     public getPlayers(): PlayerID[] {
@@ -39,6 +39,10 @@ class ClientGame {
     public setPlayers(players: PlayerID[]) {
         this.gameData.playerIds = players;
         this.saveGame();
+        Board.Instance.clearRobots();
+        for (let playerId of players) {
+            Board.Instance.onPlayerJoined(playerId);
+        }
     }
 
     public saveGame() {
@@ -59,6 +63,13 @@ class ClientGame {
         this.gameData = JSON.parse(localStorage['Game_' + this.gameId]);
         socket.emit('join', { gameId: this.gameId, clientId: this.clientId});
         // TODO: load state
+        // Host loads from local storage, everyone else gets the broadcast when they join
+        if (this.isHost()) {
+            for (let playerId of this.gameData.playerIds) {
+                Board.Instance.onPlayerJoined(playerId);
+            }
+            socket.emit('broadcastPlayers', this.getPlayers());
+        }
 
         return true;
     }

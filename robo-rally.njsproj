@@ -35,6 +35,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
   <ItemGroup>
+    <Content Include="app\public\images\laser-projectile.png" />
     <Content Include="app\public\maps\Cross.json" />
     <Content Include="app\assets\Cross.tmx" />
     <Content Include="app\public\images\Laser Segment.png" />

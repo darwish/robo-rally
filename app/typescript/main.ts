@@ -7,7 +7,7 @@ declare var QRCode: any;
 declare var clientGame: ClientGame;
 declare var socket: SocketIOClient.Socket;
 
-var phaserGame: Phaser.Game, map: Phaser.Tilemap, board: Board;
+var phaserGame: Phaser.Game, map: Phaser.Tilemap, board: Board, laserProjectile:Phaser.Weapon;
 
 enum GameState {
     Initializing,
@@ -33,9 +33,10 @@ class Main {
         phaserGame.load.baseURL = '/';
         //phaserGame.load.crossOrigin = 'anonymous';
 
-        phaserGame.load.image('laser', 'images/Laser%20Small.png');
+        phaserGame.load.image('laser-emitter', 'images/Laser%20Small.png');
         phaserGame.load.image('tileset', 'images/Spritesheet%20Small.png');
         phaserGame.load.image('player-card', 'images/player-card.png');
+        phaserGame.load.image('laser-projectile', 'images/laser-projectile.png');
         phaserGame.load.spritesheet('robots', 'images/robots.png', 75, 75);
         phaserGame.load.tilemap('tilemap', 'maps/Cross.json', null, Phaser.Tilemap.TILED_JSON);
     }
@@ -45,6 +46,9 @@ class Main {
         map.addTilesetImage('RoboRallyOriginal', 'tileset');
         map.createLayer('Floor Layer').resizeWorld();
         map.createLayer('Wall Layer');
+        laserProjectile = phaserGame.add.weapon(-1, 'laser-projectile');
+        laserProjectile.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
+        laserProjectile.bulletSpeed = 400;
 
         board = new Board(map);
         initRoboRally();
@@ -144,7 +148,7 @@ class Main {
         socket.on('submitTurn', (submittedTurn) => {
             this.playerSubmittedCards[submittedTurn.playerId] = submittedTurn.cards.map((c) => new ProgramCard(c.type, c.distance, c.priority));
 
-            $('.playersList .playerItem').filter(function () { return $(this).data('player') == submittedTurn.playerId; }).addClass('submitted');
+            $('.playersList .playerItem').filter(function () { return $(this).data('player').id == submittedTurn.playerId; }).addClass('submitted');
 
             this.checkForAllPlayerSubmissions();
         });
@@ -193,12 +197,13 @@ class Main {
         }
 
         this.playerSubmittedCards[clientGame.clientId.id] = this.selectedCards;
-        this.checkForAllPlayerSubmissions();
+        $('.playersList .playerItem').filter(function () { return $(this).data('player').id == clientGame.clientId.id; }).addClass('submitted');
 
         socket.emit('submitTurn', {
-            playerId: clientGame.clientId,
+            playerId: clientGame.clientId.id,
             cards: this.selectedCards
         });
+        this.checkForAllPlayerSubmissions();
     }
 
     public checkForAllPlayerSubmissions() {
