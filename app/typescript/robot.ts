@@ -7,13 +7,11 @@ class Robot {
     public availableProgramCards: ProgramCard[];
     public registeredProgramCards: ProgramCard[];
     public lastFlagOrder: number;
+    public sprite: Phaser.Sprite;
 
     readonly maxHealth = 10;
 
-    constructor(public playerID: string, public position: BoardPosition, public orientation: Direction, public lives: number, public health?: number) {
-        if (health == undefined) {
-            this.health = this.maxHealth;
-        }
+    constructor(public playerID: string, private _position: BoardPosition, public orientation: Direction, public lives: number, spriteIndex: number = Robot.pickRandomSprite(), health = 10) {
 
         this.isPoweredDown = false;
         this.optionCards = [];
@@ -21,10 +19,38 @@ class Robot {
         this.availableProgramCards = [];
         this.registeredProgramCards = [];
         this.lastFlagOrder = 0;
+
+        let pixelPos = _position.toPixelPosition();
+        this.sprite = phaserGame.add.sprite(pixelPos.x, pixelPos.y, 'robots');
+        this.sprite.frame = spriteIndex;
+        this.sprite.maxHealth = this.maxHealth;
+        this.sprite.health = health;
     }
 
     public rotate(quarterRotationsCW: number) {
         this.orientation = DirectionUtil.clamp(this.orientation + quarterRotationsCW);
+    }
+
+    private static pickRandomSprite() {
+        return Math.floor(Math.random() * phaserGame.cache.getFrameCount('robots'));
+    }
+
+    get health(): number {
+        return this.sprite.health;
+    }
+
+    set health(val: number) {
+        this.sprite.health = val;
+    }
+
+    get position(): BoardPosition {
+        return this._position;
+    }
+
+    set position(val: BoardPosition) {
+        this._position = val.clone();
+        this.sprite.position = val.toPixelPosition();
+        this.sprite.visible = true;
     }
 
     public isDead() {
@@ -73,7 +99,8 @@ class Robot {
     }
 
     public removeFromBoard() {
-        this.position.x = undefined;
-        this.position.y = undefined;
+        this._position.x = undefined;
+        this._position.y = undefined;
+        this.sprite.visible = false;
     }
 }
