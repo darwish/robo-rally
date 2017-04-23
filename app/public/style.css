@@ -34,3 +34,10 @@ header h1 {
     margin: 10px;
     padding: 10px;
 }
+
+.cardChoice {
+    cursor: pointer;
+}
+.cardChoice.selected {
+    font-weight: bold;
+}

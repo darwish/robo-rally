@@ -53,21 +53,22 @@ var Board = (function () {
     };
     Board.prototype.attemptMoveRobot = function (robot, direction) {
         if (this.hasObstacleInDirection(robot.position, direction)) {
-            throw new Error("Cannot move robot! Obstacle in the way.");
+            return false;
         }
         var newPosition = robot.position.getAdjacentPosition(direction);
         if (!this.isPositionOnBoard(newPosition) || this.getTileType(newPosition) == "Pit") {
             robot.removeFromBoard();
-            return;
+            return true;
         }
         for (var _i = 0, _a = this.robots; _i < _a.length; _i++) {
             var otherRobot = _a[_i];
             if (otherRobot.position.x == newPosition.x && otherRobot.position.y == newPosition.y) {
-                try {
-                    this.attemptMoveRobot(otherRobot, direction);
+                if (this.attemptMoveRobot(otherRobot, direction)) {
                     robot.position = newPosition;
+                    return true;
                 }
-                catch (e) {
+                else {
+                    return false;
                 }
             }
         }
@@ -92,6 +93,10 @@ var Board = (function () {
             && DirectionUtil.getDirection(tile.rotation) == direction) {
             return true;
         }
+        else if ((tile.index == 16 || tile.index == 17)
+            && DirectionUtil.getDirection(tile.rotation + 90) == direction) {
+            return true;
+        }
         return false;
     };
     Board.prototype.runRobotProgram = function (robot, programAction) {
@@ -108,16 +113,25 @@ var Board = (function () {
                 break;
         }
     };
-    Board.prototype.executeBoardElements = function () {
+    Board.prototype.executeBoardElements = function (phase) {
         this.runConveyorBelts();
-        this.runPushers();
+        this.runPushers(phase);
         this.runGears();
     };
     Board.prototype.runConveyorBelts = function () {
         // TODO:
     };
-    Board.prototype.runPushers = function () {
-        // TODO:
+    Board.prototype.runPushers = function (phase) {
+        for (var _i = 0, _a = this.robots; _i < _a.length; _i++) {
+            var robot = _a[_i];
+            var tile = this.map.getTile(robot.position.x, robot.position.y, "Wall Layer");
+            if (tile.index == 16 && phase % 2 == 1) {
+                this.attemptMoveRobot(robot, DirectionUtil.getDirection(tile.rotation + 90));
+            }
+            else if (tile.index == 17 && phase % 2 == 0) {
+                this.attemptMoveRobot(robot, DirectionUtil.getDirection(tile.rotation + 90));
+            }
+        }
     };
     Board.prototype.runGears = function () {
         for (var _i = 0, _a = this.robots; _i < _a.length; _i++) {
@@ -405,6 +419,8 @@ var Laser = (function () {
 var phaserGame, map;
 var Main = (function () {
     function Main() {
+        this.selectedCards = [];
+        this.playerSubmittedCards = {};
         this.globalCardDeck = CardDeck.newDeck();
     }
     Main.prototype.preload = function () {
@@ -460,27 +476,68 @@ var Main = (function () {
         for (var i = 0; i < players.length; i++) {
             handData[players[i]] = hands[i];
         }
-        socket.emit('dealtCards', JSON.stringify(handData));
+        socket.emit('dealtCards', handData);
         this.showCards(hands[0]);
     };
     Main.prototype.waitForCards = function () {
         var _this = this;
         socket.on('dealtCards', function (handData) {
             socket.off('dealtCards');
-            var cardData = JSON.parse(handData)[clientGame.clientId];
+            var cardData = handData[clientGame.clientId];
             _this.cards = cardData.map(function (c) { return new ProgramCard(c.type, c.distance, c.priority); });
             _this.showCards(_this.cards);
+            _this.waitForAllSubmissions();
+        });
+    };
+    Main.prototype.waitForAllSubmissions = function () {
+        var _this = this;
+        socket.on('submitTurn', function (submittedTurn) {
+            var submission = submittedTurn;
+            _this.playerSubmittedCards[submission.playerId] = submission.cards.map(function (c) { return new ProgramCard(c.type, c.distance, c.priority); });
         });
     };
     Main.prototype.showCards = function (cards) {
         $('.statusText').html('Choose Your Cards');
-        var list = cards.map(function (card) {
-            return '<li>' + card.toString() + '</li>';
-        }).join('');
-        $('.cardContainer').html(list);
+        $('.cardContainer').empty();
+        cards.forEach;
+        cards.forEach(function (card) {
+            var cardChoice = $('<li class="cardChoice">' + card.toString() + '</li>');
+            cardChoice.data('card', card);
+            $('.cardContainer').append(cardChoice);
+        });
     };
     Main.prototype.dealCards = function (handSizes) {
         return this.globalCardDeck.deal(handSizes);
+    };
+    Main.prototype.chooseCard = function (element) {
+        var card = $(element).data('card');
+        if ($(element).hasClass('selected')) {
+            this.selectedCards.splice(this.selectedCards.indexOf(card), 1);
+            $(element).removeClass('selected');
+            $('.submitCards').addClass('hidden');
+        }
+        else {
+            if (this.selectedCards.length < 5) {
+                this.selectedCards.push(card);
+                $(element).addClass('selected');
+                if (this.selectedCards.length == 5) {
+                    $('.submitCards').removeClass('hidden');
+                }
+                else {
+                    $('.submitCards').addClass('hidden');
+                }
+            }
+        }
+    };
+    Main.prototype.submitSelectedCards = function () {
+        if (this.selectedCards.length != 5) {
+            alert("You must choose 5 cards to submit. You've only chosen " + this.selectedCards.length + ".");
+            return;
+        }
+        socket.emit('submitTurn', {
+            playerId: clientGame.clientId,
+            cards: this.selectedCards
+        });
     };
     return Main;
 }());
@@ -496,16 +553,13 @@ function initRoboRally() {
         if (!clientGame.isHost()) {
             clientGame.loadOrJoin();
         }
+        if (clientGame.isHost()) {
+            $('.startGame').removeClass('hidden').click(function () { return main.startGame(); });
+        }
         main.waitForPlayers();
     });
-    $('.startGame').click(function () { return main.startGame(); });
-}
-var words = ["Berry", "Blossom", "Bride", "Butterfly", "Candy", "Couple", "Cream", "Dear", "Dress", "Dumpling", "Flower", "Flute", "Girdle", "Glimmer", "Glisten", "Gloss", "Honey", "Incense", "Knit", "Lace", "Lark", "Lute", "Lyric", "Meadow", "Mellow", "Mother", "Music", "Nestle", "Nurture", "Pregnant", "Prim", "Queen", "Satin", "Sheen", "Show", "Silk", "Silky", "Sing", "Sister", "Skirt", "Skirt", "Smile", "Style", "Sugar", "Sweet", "Trim", "Tulip", "Tweet", "Velvet", "Wavy", "Wisp", "Wonder", "Dessert", "Fancy", "Lather", "Petal", "Droplet", "Pantomime", "Fragrance", "Glitter", "Sparkle", "Tragedy", "Cyclopean", "Trifle", "Luxury", "Euphoria", "Scintillate", "Sensual", "Malodorous", "Venerate", "Tress", "Ensorcel", "Fabulous", "Mirth", "Laconic", "Quiescent", "Reticent", "Saturnine", "Taciturn", "Fortuitous", "Tenebrous", "Morose", "Beloved", "Suitor", "Pungent", "Cherish", "Pristine", "Languish", "Adore", "Embrace", "Meander", "Bewilder", "Intricate", "Poem", "Poetry", "Poet", "Amethyst", "Aquamarine", "Azure", "Beige", "Sienna", "Umber", "Cardinal", "Carmine", "Cerulean", "Chartreuse", "Fuchsia", "Goldenrod", "Heliotrope", "Lavender", "Lilac", "Mauve", "Taupe", "Periwinkle", "Russet", "Saffron", "Vermilion", "Festival", "Animal", "Ape", "Autumn", "Beak", "Beast", "Bear", "Bee", "Beetle", "Berry", "Bird", "Blaze", "Blossom", "Boar", "Bog", "Buck", "Bush", "Butterfly", "Buzzard", "Canyon", "Cat", "Chill", "Chirp", "Clam", "Clearing", "Cobra", "Crab", "Creek", "Crow", "Dawn", "Deer", "Dirt", "Dusk", "Eagle", "Eel", "Fang", "Fin", "Fish", "Flower", "Fog", "Forest", "Frog", "Fruit", "Fungus", "Fur", "Gerbil", "Glen", "Gore", "Gorge", "Grape", "Grass", "Grove", "Grow", "Growl", "Growth", "Grub", "Hare", "Hawk", "Heather", "Hedge", "Hide", "Hill", "Hoary", "Hog", "Hoof", "Hop", "Horn", "Howl", "Ivy", "Jackal", "Jaw", "Jungle", "Kitten", "Lake", "Lark", "Larva", "Leaf", "Leopard", "Lizard", "Lobster", "Lush", "Maggot", "Mange", "Marsh", "Maw", "Meadow", "Mist", "Mite", "Mold", "Mole", "Monkey", "Moth", "Mud", "Mushroom", "Nature", "Nest", "Nettle", "Newt", "Nut", "Oak", "Owl", "Pack", "Panther", "Peach", "Plant", "Planter", "Rabbit", "Rain", "Ram", "Raptor", "Rat", "Raven", "Ripe", "River", "Rock", "Root", "Rose", "Sap", "Scorpion", "Sea", "Seal", "Season", "Seed", "Serpent", "Shark", "Shell", "Silt", "Skunk", "Sky", "Slither", "Slug", "Snake", "Soil", "Spider", "Spidery", "Spring", "Squid", "Stick", "Stone", "Storm", "Straw", "Summer", "Sun", "Swamp", "Tail", "Talon", "Tempest", "Thorn", "Thunder", "Tick", "Toad", "Tulip", "Tusk", "Tweet", "Twilight", "Vegetable", "Vegetation", "Viper", "Volcano", "Vulture", "Wasp", "Wave", "Weasel", "Weed", "Wheat", "Wing", "Winter", "Wood", "Worm", "Earth", "Bud", "Desert", "Field", "Glacier", "Mountain", "Prairie", "Tentacle", "Tundra", "Weevil", "Dune", "Pine", "Puppy", "Gnarled", "Stump", "Beard", "Water", "Wax", "Roar", "Ford", "Snarl", "Drink", "Flight", "Twig", "Tuft", "Fern", "Gully", "Lion", "Cactus", "Cloud", "Bean", "Pearl", "Pear", "Bunny", "Wind storm", "Skin", "Shin", "Island", "Grotto", "Shore", "Beach", "Coast", "Insect", "Bug", "Critter", "Pristine", "Weather", "Dale", "Dell", "Glade", "Vale", "Basin", "Den", "Valley", "Cyclone", "Typhoon", "Hurricane", "Gale", "Tornado", "Scale", "Whisker", "Bulb", "Stream", "Creature", "Snail", "Vine", "Morning", "Tree", "Chestnut", "Cinnamon", "Olive", "Flax", "Fuchsia", "Goldenrod", "Heliotrope", "Lavender", "Lemon", "Lilac", "Lime", "Mahogany", "Mint", "Moss", "Orange", "Periwinkle", "Plum", "Pumpkin", "Saffron", "Sepia", "Teal", "Birth", "Leap", "Jump", "Dive"];
-function generateName() {
-    getRandomName() + ' ' + getRandomName();
-    function getRandomName() {
-        return words[Math.floor(Math.random() * words.length)];
-    }
+    $('.cardContainer').on('click', '.cardChoice', function () { main.chooseCard(this); });
+    $('.submitCards').click(function () { return main.submitSelectedCards(); });
 }
 var words = ["Berry", "Blossom", "Bride", "Butterfly", "Candy", "Couple", "Cream", "Dear", "Dress", "Dumpling", "Flower", "Flute", "Girdle", "Glimmer", "Glisten", "Gloss", "Honey", "Incense", "Knit", "Lace", "Lark", "Lute", "Lyric", "Meadow", "Mellow", "Mother", "Music", "Nestle", "Nurture", "Pregnant", "Prim", "Queen", "Satin", "Sheen", "Show", "Silk", "Silky", "Sing", "Sister", "Skirt", "Skirt", "Smile", "Style", "Sugar", "Sweet", "Trim", "Tulip", "Tweet", "Velvet", "Wavy", "Wisp", "Wonder", "Dessert", "Fancy", "Lather", "Petal", "Droplet", "Pantomime", "Fragrance", "Glitter", "Sparkle", "Tragedy", "Cyclopean", "Trifle", "Luxury", "Euphoria", "Scintillate", "Sensual", "Malodorous", "Venerate", "Tress", "Ensorcel", "Fabulous", "Mirth", "Laconic", "Quiescent", "Reticent", "Saturnine", "Taciturn", "Fortuitous", "Tenebrous", "Morose", "Beloved", "Suitor", "Pungent", "Cherish", "Pristine", "Languish", "Adore", "Embrace", "Meander", "Bewilder", "Intricate", "Poem", "Poetry", "Poet", "Amethyst", "Aquamarine", "Azure", "Beige", "Sienna", "Umber", "Cardinal", "Carmine", "Cerulean", "Chartreuse", "Fuchsia", "Goldenrod", "Heliotrope", "Lavender", "Lilac", "Mauve", "Taupe", "Periwinkle", "Russet", "Saffron", "Vermilion", "Festival", "Animal", "Ape", "Autumn", "Beak", "Beast", "Bear", "Bee", "Beetle", "Berry", "Bird", "Blaze", "Blossom", "Boar", "Bog", "Buck", "Bush", "Butterfly", "Buzzard", "Canyon", "Cat", "Chill", "Chirp", "Clam", "Clearing", "Cobra", "Crab", "Creek", "Crow", "Dawn", "Deer", "Dirt", "Dusk", "Eagle", "Eel", "Fang", "Fin", "Fish", "Flower", "Fog", "Forest", "Frog", "Fruit", "Fungus", "Fur", "Gerbil", "Glen", "Gore", "Gorge", "Grape", "Grass", "Grove", "Grow", "Growl", "Growth", "Grub", "Hare", "Hawk", "Heather", "Hedge", "Hide", "Hill", "Hoary", "Hog", "Hoof", "Hop", "Horn", "Howl", "Ivy", "Jackal", "Jaw", "Jungle", "Kitten", "Lake", "Lark", "Larva", "Leaf", "Leopard", "Lizard", "Lobster", "Lush", "Maggot", "Mange", "Marsh", "Maw", "Meadow", "Mist", "Mite", "Mold", "Mole", "Monkey", "Moth", "Mud", "Mushroom", "Nature", "Nest", "Nettle", "Newt", "Nut", "Oak", "Owl", "Pack", "Panther", "Peach", "Plant", "Planter", "Rabbit", "Rain", "Ram", "Raptor", "Rat", "Raven", "Ripe", "River", "Rock", "Root", "Rose", "Sap", "Scorpion", "Sea", "Seal", "Season", "Seed", "Serpent", "Shark", "Shell", "Silt", "Skunk", "Sky", "Slither", "Slug", "Snake", "Soil", "Spider", "Spidery", "Spring", "Squid", "Stick", "Stone", "Storm", "Straw", "Summer", "Sun", "Swamp", "Tail", "Talon", "Tempest", "Thorn", "Thunder", "Tick", "Toad", "Tulip", "Tusk", "Tweet", "Twilight", "Vegetable", "Vegetation", "Viper", "Volcano", "Vulture", "Wasp", "Wave", "Weasel", "Weed", "Wheat", "Wing", "Winter", "Wood", "Worm", "Earth", "Bud", "Desert", "Field", "Glacier", "Mountain", "Prairie", "Tentacle", "Tundra", "Weevil", "Dune", "Pine", "Puppy", "Gnarled", "Stump", "Beard", "Water", "Wax", "Roar", "Ford", "Snarl", "Drink", "Flight", "Twig", "Tuft", "Fern", "Gully", "Lion", "Cactus", "Cloud", "Bean", "Pearl", "Pear", "Bunny", "Wind storm", "Skin", "Shin", "Island", "Grotto", "Shore", "Beach", "Coast", "Insect", "Bug", "Critter", "Pristine", "Weather", "Dale", "Dell", "Glade", "Vale", "Basin", "Den", "Valley", "Cyclone", "Typhoon", "Hurricane", "Gale", "Tornado", "Scale", "Whisker", "Bulb", "Stream", "Creature", "Snail", "Vine", "Morning", "Tree", "Chestnut", "Cinnamon", "Olive", "Flax", "Fuchsia", "Goldenrod", "Heliotrope", "Lavender", "Lemon", "Lilac", "Lime", "Mahogany", "Mint", "Moss", "Orange", "Periwinkle", "Plum", "Pumpkin", "Saffron", "Sepia", "Teal", "Birth", "Leap", "Jump", "Dive"];
 function generateName() {
@@ -645,7 +699,7 @@ var TurnLogic = (function () {
                 robotMovements.push(new RobotPhaseMovement(turn.robot, turn.programCards[i]));
             }
             this.runRobotMovements(robotMovements);
-            Board.Instance.executeBoardElements();
+            Board.Instance.executeBoardElements(i);
             Board.Instance.fireLasers();
             Board.Instance.touchFlags();
         }
