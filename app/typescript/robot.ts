@@ -22,7 +22,7 @@ class Robot {
 
         let pixelPos = _position.toCenterPixelPosition();
         this.sprite = phaserGame.add.sprite(pixelPos.x, pixelPos.y, 'robots');
-        this.sprite.angle = _orientation.toDegrees();
+        this.sprite.angle = _orientation.toDegrees() + 180;
         this.sprite.frame = spriteIndex;
         this.sprite.maxHealth = this.maxHealth;
         this.sprite.health = health;
@@ -30,9 +30,9 @@ class Robot {
     }
 
     public rotate(quarterRotationsCW: number) {
-        this._orientation.addTurns(quarterRotationsCW);
+        this._orientation = this._orientation.addTurns(quarterRotationsCW);
 
-        let desiredAngle = this._orientation.toDegrees();
+        let desiredAngle = this._orientation.toDegrees() + 180;
         let delta = Phaser.Math.wrapAngle(desiredAngle - this.sprite.angle)
 
         phaserGame.add.tween(this.sprite).to({ angle: this.sprite.angle + delta }, 750, Phaser.Easing.Cubic.InOut, true);
@@ -99,23 +99,8 @@ class Robot {
     }
 
     protected updateLockedRegisters() {
-        this.lockedRegisters = [true,true,true,true,true];
-
-        if (this.health > 1) {
-            this.lockedRegisters[0] = false;
-        }
-        if (this.health > 2) {
-            this.lockedRegisters[1] = false;
-        }
-        if (this.health > 3) {
-            this.lockedRegisters[2] = false;
-        }
-        if (this.health > 4) {
-            this.lockedRegisters[3] = false;
-        }
-        if (this.health > 5) {
-            this.lockedRegisters[4] = false;
-        }
+        for (let i = 0; i < this.lockedRegisters.length; i++)
+            this.lockedRegisters[i] = this.health <= i + 1;
     }
 
     public removeFromBoard() {

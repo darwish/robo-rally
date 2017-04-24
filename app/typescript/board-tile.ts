@@ -96,7 +96,7 @@ class BoardTile {
         }
 
         if (tile.index == 13
-            && (Direction.fromRadians(tile.rotation) == direction || Direction.fromRadians(tile.rotation + PiOver2) == direction)) {
+            && (Direction.fromRadians(tile.rotation) == direction || Direction.fromRadians(tile.rotation - PiOver2) == direction)) {
             return true;
         }
         else if (tile.index == 14

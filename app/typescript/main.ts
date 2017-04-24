@@ -9,6 +9,14 @@ declare var socket: SocketIOClient.Socket;
 const PiOver2 = Math.PI / 2;
 import Point = Phaser.Point;
 
+interface Math {
+    /** Returns -1 if x < 0, 1 if x > 0 and 0 if x == 0 */
+    sign(x: number): number
+}
+
+Math.sign = function (x: number) {
+    return x == 0 ? 0 : x < 0 ? -1 : 1;
+}
 
 var phaserGame: Phaser.Game, map: Phaser.Tilemap, wallLayer: Phaser.TilemapLayer, board: Board, laserProjectile: Phaser.Weapon;
 
@@ -52,6 +60,8 @@ class Main {
         laserProjectile = phaserGame.add.weapon(-1, 'laser-projectile');
         laserProjectile.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
         laserProjectile.bulletSpeed = 400;
+        laserProjectile.bulletAngleOffset = 90;
+        laserProjectile.fireRate = 0;
 
         board = new Board(map);
         initRoboRally();

@@ -51,11 +51,12 @@ class Board {
     }
 
     protected moveRobot(robot: Robot, distance: number, direction: Direction) {
-        if (distance < 0) {
-            throw new Error("Cannot move negative distance!");
-        }
-        while (distance > 0) {
-            distance--;
+        distance = Math.round(distance);    // just in case
+        if (distance < 0)
+            direction = direction.opposite();
+
+        while (distance !== 0) {
+            distance -= Math.sign(distance);
             try {
                 this.attemptMoveRobot(robot, direction);
             } catch (e) {
@@ -124,7 +125,7 @@ class Board {
                 robot.rotate(programAction.distance);
                 break;
             case ProgramCardType.MOVE:
-                this.moveRobot(robot, Math.abs(programAction.distance), robot.orientation);
+                this.moveRobot(robot, programAction.distance, robot.orientation);
                 break;
         }
     }
@@ -192,7 +193,7 @@ class Board {
             if (robot.position.x == position.x && robot.position.y == position.y)
                 return robot;
         }
-        return false;
+        return null;
     }
 
     private runPushers(phase: number) {

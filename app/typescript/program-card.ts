@@ -1,4 +1,9 @@
-﻿class ProgramCard {
+﻿enum ProgramCardType {
+    MOVE,
+    ROTATE
+}
+
+class ProgramCard {
     constructor(public type: ProgramCardType, public distance: number, public priority: number) { }
 
     public toString() {

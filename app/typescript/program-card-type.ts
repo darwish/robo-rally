@@ -1,4 +1,0 @@
-﻿enum ProgramCardType {
-    MOVE,
-    ROTATE
-}

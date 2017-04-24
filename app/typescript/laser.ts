@@ -62,16 +62,29 @@
 
     public render() {
         for (let beam of this.beams)
-            phaserGame.debug.geom(beam, 'red');
+            phaserGame.debug.geom(beam, 'rgba(255,0,0,0.3)');
     }
 
     public fire() {
         var robots = Board.Instance.robots;
-        
-        
-        /*if (closestFacingRobot) {
-            closestFacingRobot.dealDamage(this.damagePower);
-            laserProjectile.fire(this.position, closestFacingRobot.position.x, closestFacingRobot.position.y);
-        }*/
+        let target: Robot = null;
+        let dir = Direction.fromVector(this.direction);
+
+        let current = this.position.clone();
+        while (board.isPositionOnBoard(current)) {
+            if (target = board.robotInPosition(current))
+                break;
+            else if (board.hasObstacleInDirection(current, dir))
+                break;
+
+            Point.add(current, this.direction, current);
+        }
+
+        if (target) {
+            target.dealDamage(this.damagePower);
+            let targetPos = target.sprite.position;
+            for (let beam of this.beams)
+                laserProjectile.fire(beam.start, targetPos.x, targetPos.y);
+        }
     }
 }
