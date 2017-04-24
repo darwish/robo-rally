@@ -6,8 +6,11 @@ declare var window: Window;
 declare var QRCode: any;
 declare var clientGame: ClientGame;
 declare var socket: SocketIOClient.Socket;
+const PiOver2 = Math.PI / 2;
+import Point = Phaser.Point;
 
-var phaserGame: Phaser.Game, map: Phaser.Tilemap, board: Board, laserProjectile:Phaser.Weapon;
+
+var phaserGame: Phaser.Game, map: Phaser.Tilemap, wallLayer: Phaser.TilemapLayer, board: Board, laserProjectile: Phaser.Weapon;
 
 enum GameState {
     Initializing,
@@ -45,7 +48,7 @@ class Main {
         map = phaserGame.add.tilemap('tilemap');
         map.addTilesetImage('RoboRallyOriginal', 'tileset');
         map.createLayer('Floor Layer').resizeWorld();
-        map.createLayer('Wall Layer');
+        wallLayer = map.createLayer('Wall Layer');
         laserProjectile = phaserGame.add.weapon(-1, 'laser-projectile');
         laserProjectile.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
         laserProjectile.bulletSpeed = 400;
@@ -68,8 +71,10 @@ class Main {
     }
 
     public render() {
-        for (let laser of board.lasers)
-            laser.render();
+        if (board) {
+            for (let laser of board.lasers)
+                laser.render();
+        }
     }
 
     public waitForPlayers() {

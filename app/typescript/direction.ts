@@ -1,47 +1,74 @@
-enum Direction {
-    // increasing CW from North
-    N = 0,
-    E = 1,
-    S = 2,
-    W = 3
-}
+/**
+ * Represents the four board directions, North, East, South and West. This class is immutable. Equality comparisons work
+ * as expected because the same objects are always returned for a given direction. (For example, Direction.E == Direction.W.opposite() will return true.)
+ */
+class Direction {
+    private constructor(private turns: number) { }
 
-class DirectionUtil {
-    public static getDirection(angleInRads) {
-        let angleInDegrees = Phaser.Math.radToDeg(angleInRads);
-        while (angleInDegrees < 0) {
-            angleInDegrees += 360;
+    public static readonly N = new Direction(0);
+    public static readonly E = new Direction(1);
+    public static readonly S = new Direction(2);
+    public static readonly W = new Direction(3);
+    public static readonly All = [Direction.N, Direction.E, Direction.S, Direction.W];
+
+    public static fromTurns(turns: number) { return Direction.clamp(turns); }
+
+    public static fromRadians(angleInRads: number) {
+        return Direction.clamp(Math.round(angleInRads / PiOver2));
+    }
+
+    public static fromDegrees(angleInDeg: number) {
+        return Direction.clamp(Math.round(angleInDeg / 90));
+    }
+
+    public static fromVector(v: Point) {
+        return Direction.fromRadians(Math.atan2(v.y, v.x));
+    }
+    /** "Overloaded" conversion. Converts a number in radians or a Point to a Direction. For convenience, you can also pass in a Direction,
+     *  which will be returned unchanged. */
+    public static from(val: number | Point | Direction) {
+        return typeof val === 'number' ? Direction.fromRadians(val) : val instanceof Point ? Direction.fromVector(val) : val;
+    }
+
+    public opposite() {
+        return this.addTurns(2);
+    }
+
+    public addTurns(turnsCW: number) {
+        return Direction.clamp(turnsCW + this.turns);
+    }
+
+    public toDegrees() {
+        return this.turns * 90;
+    }
+
+    public toRadians() {
+        return this.turns * PiOver2;
+    }
+
+    /** Returns a Phaser.Point for the unit vector for this direction. Positive x is east and positive y is south. */
+    public toVector() {
+        let sign = this.turns % 3 == 0 ? -1 : 1;
+        return new Point((this.turns & 1) * sign, +!(this.turns & 1) * sign);
+    }
+
+    private static clamp(direction: Direction | number) {
+        let turns = direction instanceof Direction ? direction.turns : direction;
+
+        if (turns < 0) {
+            turns = (turns % 4) + 4;
         }
 
-        return ((angleInDegrees % 360) / 90) % 4;
+        return Direction.All[Math.floor(turns % 4)];
     }
 
-    public static clamp(direction: Direction) {
-        while (direction < 0) {
-            direction += 4;
-        }
-
-        return direction % 4;
-    }
-
-    public static opposite(direction: Direction) {
-        return DirectionUtil.clamp(direction + 2);
-    }
-
-    public static toDegrees(direction: Direction) {
-        switch (direction) {
-            case Direction.N:
-                return 0;
-            case Direction.E:
-                return 90;
-            case Direction.S:
-                return 180;
-            case Direction.W:
-                return 270;
-        }
-    }
-
-    public static rotateDirection(direction: Direction, angleInRads: number) {
-        return this.getDirection(Phaser.Math.degToRad(this.toDegrees(direction)) + angleInRads);
+    /**
+     * Rotates a by a given angle, snapped to the nearest 90° turn. Use addTurns() instead if you want to rotate by quarter revolutions.
+     * @param angle Angle in radians, unless useDegrees is set to true.
+     * @param useDegrees
+     */
+    public rotate(angle: number, useDegrees = false) {
+        let deltaTurns = useDegrees ? angle / 90 : angle / PiOver2;
+        return Direction.clamp(this.turns + deltaTurns);
     }
 }

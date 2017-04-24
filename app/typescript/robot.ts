@@ -22,7 +22,7 @@ class Robot {
 
         let pixelPos = _position.toCenterPixelPosition();
         this.sprite = phaserGame.add.sprite(pixelPos.x, pixelPos.y, 'robots');
-        this.sprite.angle = this.orientation * 90;
+        this.sprite.angle = _orientation.toDegrees();
         this.sprite.frame = spriteIndex;
         this.sprite.maxHealth = this.maxHealth;
         this.sprite.health = health;
@@ -30,16 +30,15 @@ class Robot {
     }
 
     public rotate(quarterRotationsCW: number) {
-        this._orientation = DirectionUtil.clamp(this._orientation + quarterRotationsCW);
+        this._orientation.addTurns(quarterRotationsCW);
 
-        let desiredAngle = DirectionUtil.toDegrees(this._orientation);
-
+        let desiredAngle = this._orientation.toDegrees();
         let delta = Phaser.Math.wrapAngle(desiredAngle - this.sprite.angle)
 
         phaserGame.add.tween(this.sprite).to({ angle: this.sprite.angle + delta }, 750, Phaser.Easing.Cubic.InOut, true);
     }
 
-    get orientation(): number {
+    get orientation() {
         return this._orientation;
     }
 
@@ -47,7 +46,7 @@ class Robot {
         return Math.floor(Math.random() * phaserGame.cache.getFrameCount('robots'));
     }
 
-    get health(): number {
+    get health() {
         return this.sprite.health;
     }
 

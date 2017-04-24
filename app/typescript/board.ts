@@ -27,7 +27,7 @@ class Board {
             var position = new BoardPosition(x, y);
 
             if (object.type == "Laser") {
-                var newLaser = new Laser(position, DirectionUtil.getDirection(object.rotation), object.properties.Count);
+                var newLaser = new Laser(position, Direction.fromDegrees(object.rotation), object.properties.Count);
                 this.lasers.push(newLaser);
             }
             else if (object.type == "Flag") {
@@ -42,7 +42,7 @@ class Board {
     }
 
     public onPlayerJoined(playerID: PlayerID) {
-        var newRobot = new Robot(playerID.id, new BoardPosition(this.robots.length, 0), 2, 3); // TODO: can't start all robots at the same place
+        var newRobot = new Robot(playerID.id, new BoardPosition(this.robots.length, 0), Direction.S, 3); // TODO: can't start all robots at the same place
         this.robots.push(newRobot);
     }
 
@@ -64,22 +64,18 @@ class Board {
         }
     }
 
-    public getTile(position: BoardPosition) {
+    public getTile(position: Point) {
         if (position && this.isPositionOnBoard(position)) {
             return new BoardTile(this.map, position);
         }
         return null;
     }
 
-    public isPositionOnBoard(position: BoardPosition) {
-        if (position.x < this.map.width &&
-            position.x >= 0 &&
-            position.y < this.map.height &&
-            position.y >= 0
-        ) {
-            return true;
-        }
-        return false;
+    public isPositionOnBoard(position: Point) {
+        return position.x < this.map.width &&
+               position.x >= 0 &&
+               position.y < this.map.height &&
+               position.y >= 0;
     }
 
     protected attemptMoveRobot(robot: Robot, direction: Direction) {
@@ -104,14 +100,15 @@ class Board {
         robot.position = newPosition;
     }
 
-    public hasObstacleInDirection(tilePosition: BoardPosition, direction: Direction) {
+    public hasObstacleInDirection(tilePosition: Point, direction: Direction) {
+        let position = new BoardPosition(tilePosition);
 
-        let thisTile: BoardTile = this.getTile(tilePosition);
-        let nextTile: BoardTile = this.getTile(tilePosition.getAdjacentPosition(direction));
+        let thisTile: BoardTile = this.getTile(position);
+        let nextTile: BoardTile = this.getTile(position.getAdjacentPosition(direction));
 
         if (thisTile && thisTile.hasObstacleInDirection(direction)) {
             return true;
-        } else if (nextTile && nextTile.hasObstacleInDirection(DirectionUtil.opposite(direction))) {
+        } else if (nextTile && nextTile.hasObstacleInDirection(direction.opposite())) {
             return true;
         }
 
@@ -127,11 +124,7 @@ class Board {
                 robot.rotate(programAction.distance);
                 break;
             case ProgramCardType.MOVE:
-                let orientation = robot.orientation;
-                if (programAction.distance < 0) {
-                    orientation = (robot.orientation + 4) % 4;
-                }
-                this.moveRobot(robot, Math.abs(programAction.distance), orientation);
+                this.moveRobot(robot, Math.abs(programAction.distance), robot.orientation);
                 break;
         }
     }
@@ -155,7 +148,7 @@ class Board {
                 let newTile = this.getTile(robot.position.getAdjacentPosition(moveDirection));
                 this.moveRobotAlongConveyor(robot, moveDirection);
                 if (newTile) {
-                    let rotation = newTile.conveyorBeltRotationFromDirection(DirectionUtil.opposite(moveDirection));
+                    let rotation = newTile.conveyorBeltRotationFromDirection(moveDirection.opposite());
                     console.log("Rotation: " + rotation)
                     robot.rotate(rotation);
                 }
@@ -194,11 +187,10 @@ class Board {
         return false;
     }
 
-    public robotInPosition(position: BoardPosition) {
+    public robotInPosition(position: Point) {
         for (let robot of this.robots) {
-            if (robot.position.x == position.x && robot.position.y == position.y) {
+            if (robot.position.x == position.x && robot.position.y == position.y)
                 return robot;
-            }
         }
         return false;
     }
@@ -211,10 +203,10 @@ class Board {
             }
 
             if (tile.index == 16 && phase % 2 == 1) {
-                this.attemptMoveRobot(robot, DirectionUtil.getDirection(tile.rotation + 90));
+                this.attemptMoveRobot(robot, Direction.fromRadians(tile.rotation + PiOver2));
             }
             else if (tile.index == 17 && phase % 2 == 0) {
-                this.attemptMoveRobot(robot, DirectionUtil.getDirection(tile.rotation + 90));
+                this.attemptMoveRobot(robot, Direction.fromRadians(tile.rotation + PiOver2));
             }
         }
     }

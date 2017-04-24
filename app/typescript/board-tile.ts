@@ -1,9 +1,14 @@
 class BoardTile {
-    constructor(public map: Phaser.Tilemap, public position: BoardPosition) {}
+    public position: BoardPosition;
+
+    constructor(public map: Phaser.Tilemap, position: Point) {
+        this.position = new BoardPosition(position.x, position.y);
+    }
 
     private getPhaserTile(layerName: string) {
         return this.map.getTile(this.position.x, this.position.y, layerName);
     }
+
     public isPitTile() {
         let tile: Phaser.Tile = this.getPhaserTile("Floor Layer");
         switch (tile.index) {
@@ -65,39 +70,41 @@ class BoardTile {
             case 5:
             case 6:
                 return [
-                    this.position.getAdjacentPosition(DirectionUtil.rotateDirection(Direction.W, tile.rotation))
+                    this.position.getAdjacentPosition(Direction.W.rotate(tile.rotation))
                 ];
             case 3:
             case 7:
                 return [
-                    this.position.getAdjacentPosition(DirectionUtil.rotateDirection(Direction.W, tile.rotation)),
-                    this.position.getAdjacentPosition(DirectionUtil.rotateDirection(Direction.S, tile.rotation))
+                    this.position.getAdjacentPosition(Direction.W.rotate(tile.rotation)),
+                    this.position.getAdjacentPosition(Direction.S.rotate(tile.rotation))
                 ];
             case 4:
             case 8:
                 return [
-                    this.position.getAdjacentPosition(DirectionUtil.rotateDirection(Direction.N, tile.rotation)),
-                    this.position.getAdjacentPosition(DirectionUtil.rotateDirection(Direction.S, tile.rotation))
+                    this.position.getAdjacentPosition(Direction.N.rotate(tile.rotation)),
+                    this.position.getAdjacentPosition(Direction.S.rotate(tile.rotation))
                 ];
         }
     }
 
-    public hasObstacleInDirection(direction: Direction) {
+    public hasObstacleInDirection(direction: Direction | Point | number) {
+        direction = Direction.from(direction);
+
         var tile: Phaser.Tile = this.getPhaserTile("Wall Layer");
         if (tile == null) {
             return false;
         }
 
         if (tile.index == 13
-            && (DirectionUtil.getDirection(tile.rotation) == direction || DirectionUtil.getDirection(tile.rotation + 90) == direction)) {
+            && (Direction.fromRadians(tile.rotation) == direction || Direction.fromRadians(tile.rotation + PiOver2) == direction)) {
             return true;
         }
         else if (tile.index == 14
-            && DirectionUtil.getDirection(tile.rotation) == direction) {
+            && Direction.fromRadians(tile.rotation) == direction) {
             return true;
         }
         else if ((tile.index == 17 || tile.index == 18)
-            && DirectionUtil.getDirection(tile.rotation + 90) == direction) {
+            && Direction.fromRadians(tile.rotation + PiOver2) == direction) {
             return true;
         }
 
@@ -109,21 +116,21 @@ class BoardTile {
             let phaserTile: Phaser.Tile = this.getPhaserTile("Floor Layer");
             if (phaserTile.index == 2 || phaserTile.index == 6) {
                 // rotates left from West
-                if (DirectionUtil.rotateDirection(Direction.W, phaserTile.rotation) == direction) {
+                if (Direction.W.rotate(phaserTile.rotation) == direction) {
                     return -1;
                 }
             } else if (phaserTile.index == 3 || phaserTile.index == 7) {
                 // rotates right from South
-                if (DirectionUtil.rotateDirection(Direction.S, phaserTile.rotation) == direction) {
+                if (Direction.S.rotate(phaserTile.rotation) == direction) {
                     return 1;
                 }
             } else if (phaserTile.index == 4 || phaserTile.index == 8) {
                 // rotates left from North
-                if (DirectionUtil.rotateDirection(Direction.N, phaserTile.rotation) == direction) {
+                if (Direction.N.rotate(phaserTile.rotation) == direction) {
                     return -1;
                 }
                 // rotates right from South
-                if (DirectionUtil.rotateDirection(Direction.S, phaserTile.rotation) == direction) {
+                if (Direction.S.rotate(phaserTile.rotation) == direction) {
                     return 1;
                 }
             }
@@ -142,10 +149,10 @@ class BoardTile {
                 case 5:
                 case 7:
                 case 8:
-                    return DirectionUtil.rotateDirection(Direction.E, phaserTile.rotation);
+                    return Direction.E.rotate(phaserTile.rotation);
                 case 2:
                 case 6:
-                    return DirectionUtil.rotateDirection(Direction.N, phaserTile.rotation);
+                    return Direction.N.rotate(phaserTile.rotation);
             }
         }
     }
