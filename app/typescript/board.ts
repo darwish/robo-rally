@@ -203,10 +203,10 @@ class Board {
                 continue;
             }
 
-            if (tile.index == 16 && phase % 2 == 1) {
+            if (tile.index == Tiles.Pusher135 && phase % 2 == 0) {
                 this.attemptMoveRobot(robot, Direction.fromRadians(tile.rotation + PiOver2));
             }
-            else if (tile.index == 17 && phase % 2 == 0) {
+            else if (tile.index == Tiles.Pusher24 && phase % 2 == 1) {
                 this.attemptMoveRobot(robot, Direction.fromRadians(tile.rotation + PiOver2));
             }
         }
@@ -215,10 +215,10 @@ class Board {
     private runGears() {
         for (let robot of this.robots) {
             var tile: Phaser.Tile = this.map.getTile(robot.position.x, robot.position.y, "Floor Layer");
-            if (tile.index == 20) {
+            if (tile.index == Tiles.GearCCW) {
                 robot.rotate(-1);
             }
-            else if (tile.index == 21) {
+            else if (tile.index == Tiles.GearCW) {
                 robot.rotate(1);
             }
         }

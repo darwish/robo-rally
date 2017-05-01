@@ -12,10 +12,10 @@ class BoardTile {
     public isPitTile() {
         let tile: Phaser.Tile = this.getPhaserTile("Floor Layer");
         switch (tile.index) {
-            case 15:
-            case 16:
-            case 19:
-            case 20:
+            case Tiles.PitFourSides:
+            case Tiles.PitThreeSides:
+            case Tiles.PitLShaped:
+            case Tiles.PitFourCorners:
                 return true;
             default:
                 return false;
@@ -42,10 +42,10 @@ class BoardTile {
         let tile: Phaser.Tile = this.getPhaserTile("Floor Layer");
 
         switch (tile.index) {
-            case 3:
-            case 4:
-            case 7:
-            case 8:
+            case Tiles.ConveyorSideMerge:
+            case Tiles.ConveyorFrontMerge:
+            case Tiles.FastConveyorSideMerge:
+            case Tiles.FastConveyorFrontMerge:
                 return true;
             default:
                 return false;
@@ -65,21 +65,21 @@ class BoardTile {
         let tile = this.getPhaserTile("Floor Layer");
 
         switch (tile.index) {
-            case 1:
-            case 2:
-            case 5:
-            case 6:
+            case Tiles.Conveyor:
+            case Tiles.ConveyorTurn:
+            case Tiles.FastConveyor:
+            case Tiles.FastConveyorTurn:
                 return [
                     this.position.getAdjacentPosition(Direction.W.rotate(tile.rotation))
                 ];
-            case 3:
-            case 7:
+            case Tiles.ConveyorSideMerge:
+            case Tiles.FastConveyorSideMerge:
                 return [
                     this.position.getAdjacentPosition(Direction.W.rotate(tile.rotation)),
                     this.position.getAdjacentPosition(Direction.S.rotate(tile.rotation))
                 ];
-            case 4:
-            case 8:
+            case Tiles.ConveyorFrontMerge:
+            case Tiles.FastConveyorFrontMerge:
                 return [
                     this.position.getAdjacentPosition(Direction.N.rotate(tile.rotation)),
                     this.position.getAdjacentPosition(Direction.S.rotate(tile.rotation))
@@ -95,16 +95,16 @@ class BoardTile {
             return false;
         }
 
-        if (tile.index == 13
+        if (tile.index == Tiles.WallCorner
             && (Direction.fromRadians(tile.rotation) == direction || Direction.fromRadians(tile.rotation - PiOver2) == direction)) {
             return true;
         }
-        else if (tile.index == 14
+        else if (tile.index == Tiles.Wall
             && Direction.fromRadians(tile.rotation) == direction) {
             return true;
         }
-        else if ((tile.index == 17 || tile.index == 18)
-            && Direction.fromRadians(tile.rotation + PiOver2) == direction) {
+        else if ((tile.index == Tiles.Pusher135 || tile.index == Tiles.Pusher135)
+            && Direction.fromRadians(tile.rotation - PiOver2) == direction) {
             return true;
         }
 
@@ -114,17 +114,17 @@ class BoardTile {
     public conveyorBeltRotationFromDirection(direction: Direction) {
         if (this.isConveyorBelt()) {
             let phaserTile: Phaser.Tile = this.getPhaserTile("Floor Layer");
-            if (phaserTile.index == 2 || phaserTile.index == 6) {
+            if (phaserTile.index == Tiles.ConveyorTurn || phaserTile.index == Tiles.FastConveyorTurn) {
                 // rotates left from West
                 if (Direction.W.rotate(phaserTile.rotation) == direction) {
                     return -1;
                 }
-            } else if (phaserTile.index == 3 || phaserTile.index == 7) {
+            } else if (phaserTile.index == Tiles.ConveyorSideMerge || phaserTile.index == Tiles.FastConveyorSideMerge) {
                 // rotates right from South
                 if (Direction.S.rotate(phaserTile.rotation) == direction) {
                     return 1;
                 }
-            } else if (phaserTile.index == 4 || phaserTile.index == 8) {
+            } else if (phaserTile.index == Tiles.ConveyorFrontMerge || phaserTile.index == Tiles.FastConveyorFrontMerge) {
                 // rotates left from North
                 if (Direction.N.rotate(phaserTile.rotation) == direction) {
                     return -1;
@@ -143,17 +143,27 @@ class BoardTile {
         if (this.isConveyorBelt()) {
             let phaserTile: Phaser.Tile = this.getPhaserTile("Floor Layer");
             switch (phaserTile.index) {
-                case 1:
-                case 3:
-                case 4:
-                case 5:
-                case 7:
-                case 8:
+                case Tiles.Conveyor:
+                case Tiles.ConveyorSideMerge:
+                case Tiles.ConveyorFrontMerge:
+                case Tiles.FastConveyor:
+                case Tiles.FastConveyorSideMerge:
+                case Tiles.FastConveyorFrontMerge:
                     return Direction.E.rotate(phaserTile.rotation);
-                case 2:
-                case 6:
+                case Tiles.ConveyorTurn:
+                case Tiles.FastConveyorTurn:
                     return Direction.N.rotate(phaserTile.rotation);
             }
         }
     }
+}
+
+enum Tiles {
+    None,
+    Conveyor, ConveyorTurn, ConveyorSideMerge, ConveyorFrontMerge, 
+    FastConveyor, FastConveyorTurn, FastConveyorSideMerge, FastConveyorFrontMerge,
+    Floor, Option, Repair, Unused, 
+    WallCorner, Wall, PitFourSides, PitThreeSides,
+    Pusher135, Pusher24, PitLShaped, PitFourCorners,
+    GearCCW, GearCW
 }

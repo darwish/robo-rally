@@ -7,6 +7,7 @@ var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 
+var env = process.env.NODE_ENV || 'dev';
 var games = {};
 
 // we've started you off with Express, 
@@ -14,6 +15,8 @@ var games = {};
 
 // http://expressjs.com/en/starter/static-files.html
 app.use(express.static('public'));
+if (env == 'dev')
+    app.use('/typescript', express.static('typescript'));
 
 // http://expressjs.com/en/starter/basic-routing.html
 app.get("/", function (request, response) {

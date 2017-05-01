@@ -307,10 +307,10 @@ var BoardTile = (function () {
     BoardTile.prototype.isPitTile = function () {
         var tile = this.getPhaserTile("Floor Layer");
         switch (tile.index) {
-            case 15:
-            case 16:
-            case 19:
-            case 20:
+            case Tiles.PitFourSides:
+            case Tiles.PitThreeSides:
+            case Tiles.PitLShaped:
+            case Tiles.PitFourCorners:
                 return true;
             default:
                 return false;
@@ -333,10 +333,10 @@ var BoardTile = (function () {
     BoardTile.prototype.isConveyorMerge = function () {
         var tile = this.getPhaserTile("Floor Layer");
         switch (tile.index) {
-            case 3:
-            case 4:
-            case 7:
-            case 8:
+            case Tiles.ConveyorSideMerge:
+            case Tiles.ConveyorFrontMerge:
+            case Tiles.FastConveyorSideMerge:
+            case Tiles.FastConveyorFrontMerge:
                 return true;
             default:
                 return false;
@@ -354,21 +354,21 @@ var BoardTile = (function () {
         var entrances;
         var tile = this.getPhaserTile("Floor Layer");
         switch (tile.index) {
-            case 1:
-            case 2:
-            case 5:
-            case 6:
+            case Tiles.Conveyor:
+            case Tiles.ConveyorTurn:
+            case Tiles.FastConveyor:
+            case Tiles.FastConveyorTurn:
                 return [
                     this.position.getAdjacentPosition(Direction.W.rotate(tile.rotation))
                 ];
-            case 3:
-            case 7:
+            case Tiles.ConveyorSideMerge:
+            case Tiles.FastConveyorSideMerge:
                 return [
                     this.position.getAdjacentPosition(Direction.W.rotate(tile.rotation)),
                     this.position.getAdjacentPosition(Direction.S.rotate(tile.rotation))
                 ];
-            case 4:
-            case 8:
+            case Tiles.ConveyorFrontMerge:
+            case Tiles.FastConveyorFrontMerge:
                 return [
                     this.position.getAdjacentPosition(Direction.N.rotate(tile.rotation)),
                     this.position.getAdjacentPosition(Direction.S.rotate(tile.rotation))
@@ -381,16 +381,16 @@ var BoardTile = (function () {
         if (tile == null) {
             return false;
         }
-        if (tile.index == 13
+        if (tile.index == Tiles.WallCorner
             && (Direction.fromRadians(tile.rotation) == direction || Direction.fromRadians(tile.rotation - PiOver2) == direction)) {
             return true;
         }
-        else if (tile.index == 14
+        else if (tile.index == Tiles.Wall
             && Direction.fromRadians(tile.rotation) == direction) {
             return true;
         }
-        else if ((tile.index == 17 || tile.index == 18)
-            && Direction.fromRadians(tile.rotation + PiOver2) == direction) {
+        else if ((tile.index == Tiles.Pusher135 || tile.index == Tiles.Pusher135)
+            && Direction.fromRadians(tile.rotation - PiOver2) == direction) {
             return true;
         }
         return false;
@@ -398,19 +398,19 @@ var BoardTile = (function () {
     BoardTile.prototype.conveyorBeltRotationFromDirection = function (direction) {
         if (this.isConveyorBelt()) {
             var phaserTile = this.getPhaserTile("Floor Layer");
-            if (phaserTile.index == 2 || phaserTile.index == 6) {
+            if (phaserTile.index == Tiles.ConveyorTurn || phaserTile.index == Tiles.FastConveyorTurn) {
                 // rotates left from West
                 if (Direction.W.rotate(phaserTile.rotation) == direction) {
                     return -1;
                 }
             }
-            else if (phaserTile.index == 3 || phaserTile.index == 7) {
+            else if (phaserTile.index == Tiles.ConveyorSideMerge || phaserTile.index == Tiles.FastConveyorSideMerge) {
                 // rotates right from South
                 if (Direction.S.rotate(phaserTile.rotation) == direction) {
                     return 1;
                 }
             }
-            else if (phaserTile.index == 4 || phaserTile.index == 8) {
+            else if (phaserTile.index == Tiles.ConveyorFrontMerge || phaserTile.index == Tiles.FastConveyorFrontMerge) {
                 // rotates left from North
                 if (Direction.N.rotate(phaserTile.rotation) == direction) {
                     return -1;
@@ -427,21 +427,47 @@ var BoardTile = (function () {
         if (this.isConveyorBelt()) {
             var phaserTile = this.getPhaserTile("Floor Layer");
             switch (phaserTile.index) {
-                case 1:
-                case 3:
-                case 4:
-                case 5:
-                case 7:
-                case 8:
+                case Tiles.Conveyor:
+                case Tiles.ConveyorSideMerge:
+                case Tiles.ConveyorFrontMerge:
+                case Tiles.FastConveyor:
+                case Tiles.FastConveyorSideMerge:
+                case Tiles.FastConveyorFrontMerge:
                     return Direction.E.rotate(phaserTile.rotation);
-                case 2:
-                case 6:
+                case Tiles.ConveyorTurn:
+                case Tiles.FastConveyorTurn:
                     return Direction.N.rotate(phaserTile.rotation);
             }
         }
     };
     return BoardTile;
 }());
+var Tiles;
+(function (Tiles) {
+    Tiles[Tiles["None"] = 0] = "None";
+    Tiles[Tiles["Conveyor"] = 1] = "Conveyor";
+    Tiles[Tiles["ConveyorTurn"] = 2] = "ConveyorTurn";
+    Tiles[Tiles["ConveyorSideMerge"] = 3] = "ConveyorSideMerge";
+    Tiles[Tiles["ConveyorFrontMerge"] = 4] = "ConveyorFrontMerge";
+    Tiles[Tiles["FastConveyor"] = 5] = "FastConveyor";
+    Tiles[Tiles["FastConveyorTurn"] = 6] = "FastConveyorTurn";
+    Tiles[Tiles["FastConveyorSideMerge"] = 7] = "FastConveyorSideMerge";
+    Tiles[Tiles["FastConveyorFrontMerge"] = 8] = "FastConveyorFrontMerge";
+    Tiles[Tiles["Floor"] = 9] = "Floor";
+    Tiles[Tiles["Option"] = 10] = "Option";
+    Tiles[Tiles["Repair"] = 11] = "Repair";
+    Tiles[Tiles["Unused"] = 12] = "Unused";
+    Tiles[Tiles["WallCorner"] = 13] = "WallCorner";
+    Tiles[Tiles["Wall"] = 14] = "Wall";
+    Tiles[Tiles["PitFourSides"] = 15] = "PitFourSides";
+    Tiles[Tiles["PitThreeSides"] = 16] = "PitThreeSides";
+    Tiles[Tiles["Pusher135"] = 17] = "Pusher135";
+    Tiles[Tiles["Pusher24"] = 18] = "Pusher24";
+    Tiles[Tiles["PitLShaped"] = 19] = "PitLShaped";
+    Tiles[Tiles["PitFourCorners"] = 20] = "PitFourCorners";
+    Tiles[Tiles["GearCCW"] = 21] = "GearCCW";
+    Tiles[Tiles["GearCW"] = 22] = "GearCW";
+})(Tiles || (Tiles = {}));
 var Board = (function () {
     function Board(map) {
         this.map = map;
@@ -617,10 +643,10 @@ var Board = (function () {
             if (tile == null) {
                 continue;
             }
-            if (tile.index == 16 && phase % 2 == 1) {
+            if (tile.index == Tiles.Pusher135 && phase % 2 == 0) {
                 this.attemptMoveRobot(robot, Direction.fromRadians(tile.rotation + PiOver2));
             }
-            else if (tile.index == 17 && phase % 2 == 0) {
+            else if (tile.index == Tiles.Pusher24 && phase % 2 == 1) {
                 this.attemptMoveRobot(robot, Direction.fromRadians(tile.rotation + PiOver2));
             }
         }
@@ -629,10 +655,10 @@ var Board = (function () {
         for (var _i = 0, _a = this.robots; _i < _a.length; _i++) {
             var robot = _a[_i];
             var tile = this.map.getTile(robot.position.x, robot.position.y, "Floor Layer");
-            if (tile.index == 20) {
+            if (tile.index == Tiles.GearCCW) {
                 robot.rotate(-1);
             }
-            else if (tile.index == 21) {
+            else if (tile.index == Tiles.GearCW) {
                 robot.rotate(1);
             }
         }
