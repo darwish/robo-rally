@@ -730,9 +730,10 @@ var CardDeck = (function () {
     CardDeck.prototype.deal = function (handSizes) {
         this.shuffle();
         var hands = [];
+        var compare = (this.cards.length && this.cards[0].constructor.compare) || (function (a, b) { return 0; }); // sort hands if a compare function exists
         for (var _i = 0, handSizes_1 = handSizes; _i < handSizes_1.length; _i++) {
             var size = handSizes_1[_i];
-            hands.push(this.cards.splice(0, size));
+            hands.push(this.cards.splice(0, size).sort(compare));
         }
         return hands;
     };
@@ -1142,6 +1143,15 @@ var ProgramCard = (function () {
         var distance = this.type == ProgramCardType.MOVE ? Math.abs(this.distance) : '';
         return "\n<div class=\"collapsedIcon\">\n    <span class=\"" + this.toIconName() + "\"></span><span class=\"distance\">" + (distance > 1 ? distance : '') + "</span>\n</div>\n<span class=\"movement\">\n    <span class=\"" + this.toIconName() + "\"></span><span class=\"amount\">" + distance + "</span>\n</span>\n<span class=\"priority\">\n    <span class=\"icon-bolt\"></span><span class=\"amount\">" + this.priority + "</span>\n</span>";
     };
+    /** Useful for sorting. */
+    ProgramCard.compare = function (a, b) {
+        if (a.type != b.type)
+            return b.type - a.type; // first rotate cards, then move cards
+        else if (a.distance != b.distance)
+            return a.distance - b.distance; // Needed for sorting rotations. Movement distances would actually be caught by the priority sort.
+        else
+            return a.priority - b.priority;
+    };
     return ProgramCard;
 }());
 var RobotPhaseMovement = (function () {
@@ -1288,22 +1298,22 @@ var TurnLogic = (function () {
         if (phaserGame.time.now >= this.nextTurnPhaseStepTime) {
             if (this.turnState == TurnState.RobotMovement) {
                 this.runNextTurnPhase_RobotMovements();
-                this.nextTurnPhaseStepTime = phaserGame.time.now + 1000;
+                this.nextTurnPhaseStepTime = phaserGame.time.now + 750;
                 this.turnState = TurnState.BoardMovement;
             }
             else if (this.turnState == TurnState.BoardMovement) {
                 Board.Instance.executeBoardElements(this.phaseNumber);
-                this.nextTurnPhaseStepTime = phaserGame.time.now + 1000;
+                this.nextTurnPhaseStepTime = phaserGame.time.now + 500;
                 this.turnState = TurnState.Lasers;
             }
             else if (this.turnState == TurnState.Lasers) {
                 Board.Instance.fireLasers();
-                this.nextTurnPhaseStepTime = phaserGame.time.now + 1000;
+                this.nextTurnPhaseStepTime = phaserGame.time.now + 500;
                 this.turnState = TurnState.Flags;
             }
             else if (this.turnState == TurnState.Flags) {
                 Board.Instance.touchFlags();
-                this.nextTurnPhaseStepTime = phaserGame.time.now + 1000;
+                this.nextTurnPhaseStepTime = phaserGame.time.now + 50;
                 this.turnState = TurnState.RobotMovement;
                 this.phaseNumber++;
             }

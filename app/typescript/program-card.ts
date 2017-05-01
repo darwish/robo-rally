@@ -44,4 +44,14 @@ class ProgramCard {
     <span class="icon-bolt"></span><span class="amount">${this.priority}</span>
 </span>`;
     }
+
+    /** Useful for sorting. */
+    public static compare(a: ProgramCard, b: ProgramCard) {
+        if (a.type != b.type)
+            return b.type - a.type; // first rotate cards, then move cards
+        else if (a.distance != b.distance)
+            return a.distance - b.distance;     // Needed for sorting rotations. Movement distances would actually be caught by the priority sort.
+        else
+            return a.priority - b.priority;
+    }
 }

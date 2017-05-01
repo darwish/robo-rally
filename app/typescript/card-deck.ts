@@ -52,8 +52,10 @@
         this.shuffle();
 
         var hands: T[][] = [];
+        let compare = (this.cards.length && (<any>this.cards[0].constructor).compare) || ((a, b) => 0);    // sort hands if a compare function exists
+
         for (let size of handSizes) {
-            hands.push(this.cards.splice(0, size));
+            hands.push(this.cards.splice(0, size).sort(compare));
         }
 
         return hands;
