@@ -23,4 +23,25 @@ class ProgramCard {
             }
         }
     }
+
+    private toIconName() {
+        if (this.type == ProgramCardType.MOVE)
+            return 'icon-' + (this.distance >= 0 ? 'forward' : 'back-up');
+        else
+            return 'icon-' + this.getName().replace(' ', '-').toLowerCase();
+    }
+
+    public toHtml() {
+        let distance = this.type == ProgramCardType.MOVE ? Math.abs(this.distance) : '';
+        return `
+<div class="collapsedIcon">
+    <span class="${this.toIconName()}"></span><span class="distance">${distance > 1 ? distance : ''}</span>
+</div>
+<span class="movement">
+    <span class="${this.toIconName()}"></span><span class="amount">${distance}</span>
+</span>
+<span class="priority">
+    <span class="icon-bolt"></span><span class="amount">${this.priority}</span>
+</span>`;
+    }
 }

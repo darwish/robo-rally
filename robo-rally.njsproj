@@ -35,6 +35,11 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
   <ItemGroup>
+    <Content Include="app\public\icomoon\fonts\icomoon.eot" />
+    <Content Include="app\public\icomoon\fonts\icomoon.svg" />
+    <Content Include="app\public\icomoon\fonts\icomoon.ttf" />
+    <Content Include="app\public\icomoon\fonts\icomoon.woff" />
+    <Content Include="app\public\icomoon\style.css" />
     <Content Include="app\public\images\laser-projectile.png" />
     <Content Include="app\public\maps\Cross.json" />
     <Content Include="app\assets\Cross.tmx" />
@@ -61,6 +66,8 @@
     <Folder Include="app\node_modules\" />
     <Folder Include="app\node_modules\phaser\" />
     <Folder Include="app\node_modules\phaser\typescript\" />
+    <Folder Include="app\public\icomoon\" />
+    <Folder Include="app\public\icomoon\fonts\" />
     <Folder Include="app\public\images\" />
     <Folder Include="app\public\maps\" />
     <Folder Include="app\typescript\" />
@@ -91,6 +98,9 @@
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="app\typescript\direction.ts" />
+    <TypeScriptCompile Include="app\typescript\game-settings.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="app\typescript\guid.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>

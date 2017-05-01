@@ -28,7 +28,7 @@ enum GameState {
 
 class Main {
     public gameState: GameState = GameState.Initializing;
-    public globalCardDeck: CardDeck;
+    public globalCardDeck: CardDeck<ProgramCard>;
     public cards: ProgramCard[];
     public selectedCards: ProgramCard[] = [];
     public playerSubmittedCards: { [key: string]: ProgramCard[]; } = {};
@@ -36,7 +36,7 @@ class Main {
     private turnLogic: TurnLogic = null;
 
     constructor() {
-        this.globalCardDeck = CardDeck.newDeck();
+        this.globalCardDeck = CardDeck.newProgramDeck();
     }
 
     public preload() {
@@ -178,10 +178,12 @@ class Main {
 
         $('.cardContainer').empty();
         cards.forEach((card) => {
-            var cardChoice = $('<li class="cardChoice">' + card.toString() + '</li>');
+            var cardChoice = $(`<li class="cardChoice" title="${card.toString()}">${card.toHtml()}<span class="phaseOrder"></span></li>`);
             cardChoice.data('card', card);
             $('.cardContainer').append(cardChoice);
         });
+
+        $('.cardContainer').append(`<a href=# class="collapse" onclick="$('.cardContainer').toggleClass('collapsed')"></a>`);
     }
 
     public dealCards(handSizes: number[]) {
@@ -194,11 +196,13 @@ class Main {
         if ($(element).hasClass('selected')) {
             this.selectedCards.splice(this.selectedCards.indexOf(card), 1);
             $(element).removeClass('selected');
+            $(element).find('.phaseOrder').text('');
             $('.submitCards').addClass('hidden');
         } else {
             if (this.selectedCards.length < 5) {
                 this.selectedCards.push(card);
                 $(element).addClass('selected');
+                $(element).find('.phaseOrder').text(this.selectedCards.length);
 
                 if (this.selectedCards.length == 5) {
                     $('.submitCards').removeClass('hidden');
@@ -207,6 +211,13 @@ class Main {
                 }
             }
         }
+
+        // update phase order
+        $('.cardContainer .cardChoice').each((i, el) => {
+            let index = this.selectedCards.indexOf($(el).data('card'));
+            return $(el).find('.phaseOrder').text(index < 0 ? '' : index + 1);
+        });
+        
     }
 
     public submitSelectedCards() {

@@ -1,6 +1,6 @@
-﻿class CardDeck {
-    public static newDeck() {
-        var cards = [];
+﻿class CardDeck<T> {
+    public static newProgramDeck() {
+        var cards: ProgramCard[] = [];
 
         var priority = 10
 
@@ -38,17 +38,31 @@
         return new CardDeck(cards);
     }
 
-    constructor(public cards: ProgramCard[]) { }
+    public static newOptionDeck() {
+        return new CardDeck(OptionCard.All);
+    }
+
+    constructor(public cards: T[]) { }
+
+    get count() {
+        return this.cards.length;
+    }
 
     public deal(handSizes: number[]) {
         this.shuffle();
 
-        var hands: ProgramCard[][] = [];
+        var hands: T[][] = [];
         for (let size of handSizes) {
             hands.push(this.cards.splice(0, size));
         }
 
         return hands;
+    }
+
+    /** Draws a single card from the deck. Returns undefined if no cards are left. */
+    public drawCard() {
+        // Assume already shuffled?
+        return this.cards.shift();
     }
 
     // From https://basarat.gitbooks.io/algorithms/content/docs/shuffling.html
