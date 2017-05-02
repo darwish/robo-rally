@@ -113,14 +113,12 @@
     <TypeScriptCompile Include="app\typescript\program-card.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="app\typescript\robot-phase-movement.ts" />
     <TypeScriptCompile Include="app\typescript\robot-turn.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="app\typescript\robot.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="app\typescript\turn-logic.ts" />
     <TypeScriptCompile Include="app\typescript\utility.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>

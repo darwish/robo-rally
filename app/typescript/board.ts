@@ -1,5 +1,5 @@
 class Board {
-
+    private static readonly PHASE_COUNT = 5;
     static Instance: Board
 
     public robots: Robot[] = [];
@@ -48,6 +48,24 @@ class Board {
 
     public clearRobots() {
         this.robots = [];
+    }
+
+    public async runTurnAsync(turnsData: RobotTurn[]) {
+        for (let i = 0; i < Board.PHASE_COUNT; i++) {
+            await this.runRobotMovementAsync(turnsData, i);
+            await this.executeBoardElementsAsync(i);
+            await this.fireLasersAsync();
+            await this.touchFlagsAsync();
+        }
+    }
+
+    private async runRobotMovementAsync(turnsData: RobotTurn[], phaseNumber: number) {
+        let movements = turnsData.filter(x => !x.robot.isDead())
+            .map(x => ({ robot: x.robot, programCard: x.programCards[phaseNumber] }))
+            .sort((a, b) => b.programCard.priority - a.programCard.priority);
+
+        for (let movement of movements)
+            await this.runRobotProgram(movement.robot, movement.programCard);
     }
 
     protected async moveRobot(robot: Robot, distance: number, direction: Direction) {

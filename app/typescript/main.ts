@@ -227,7 +227,7 @@ class Main {
         }
 
         this.startNewTurn();
-        await TurnLogic.runAsync(turns);
+        await Board.Instance.runTurnAsync(turns);
     }
 }
 

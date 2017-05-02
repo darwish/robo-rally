@@ -1,6 +1,5 @@
 /// <reference path="main.ts"/>
 
-
 class BoardPosition extends Point {
 
     public constructor(x: number, y: number);
