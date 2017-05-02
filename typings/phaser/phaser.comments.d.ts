@@ -28609,6 +28609,12 @@ declare module Phaser {
         * Is the top of this tile an interesting edge?
         */
         faceTop: boolean;
+
+        /**
+        * Is this tile flipped?
+        */
+        flipped: boolean;
+
         game: Phaser.Game;
 
         /**

@@ -114,24 +114,31 @@ class BoardTile {
     public conveyorBeltRotationFromDirection(direction: Direction) {
         if (this.isConveyorBelt()) {
             let phaserTile: Phaser.Tile = this.getPhaserTile("Floor Layer");
+            let factor = 1;
+
+            if (phaserTile.flipped) {
+                direction = direction.opposite();
+                factor = -1;
+            }
+
             if (phaserTile.index == Tiles.ConveyorTurn || phaserTile.index == Tiles.FastConveyorTurn) {
                 // rotates left from West
                 if (Direction.W.rotate(phaserTile.rotation) == direction) {
-                    return -1;
+                    return -1 * factor;
                 }
             } else if (phaserTile.index == Tiles.ConveyorSideMerge || phaserTile.index == Tiles.FastConveyorSideMerge) {
                 // rotates right from South
                 if (Direction.S.rotate(phaserTile.rotation) == direction) {
-                    return 1;
+                    return 1 * factor;
                 }
             } else if (phaserTile.index == Tiles.ConveyorFrontMerge || phaserTile.index == Tiles.FastConveyorFrontMerge) {
                 // rotates left from North
                 if (Direction.N.rotate(phaserTile.rotation) == direction) {
-                    return -1;
+                    return -1 * factor;
                 }
                 // rotates right from South
                 if (Direction.S.rotate(phaserTile.rotation) == direction) {
-                    return 1;
+                    return 1 * factor;
                 }
             }
         }

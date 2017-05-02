@@ -50,7 +50,7 @@ class Board {
         this.robots = [];
     }
 
-    protected moveRobot(robot: Robot, distance: number, direction: Direction) {
+    protected async moveRobot(robot: Robot, distance: number, direction: Direction) {
         distance = Math.round(distance);    // just in case
         if (distance < 0)
             direction = direction.opposite();
@@ -58,7 +58,7 @@ class Board {
         while (distance !== 0) {
             distance -= Math.sign(distance);
             try {
-                this.attemptMoveRobot(robot, direction);
+                await this.moveRobotOneTile(robot, direction);
             } catch (e) {
                 // continue attempting to move, so we can animate each attempt
             }
@@ -79,26 +79,39 @@ class Board {
                position.y >= 0;
     }
 
-    protected attemptMoveRobot(robot: Robot, direction: Direction) {
+    protected canMoveRobot(robot: Robot, direction: Direction): boolean {
         if (this.hasObstacleInDirection(robot.position, direction)) {
             return false;
         }
 
         let newPosition = robot.position.getAdjacentPosition(direction);
         let tile: BoardTile = this.getTile(newPosition);
-        if ( !tile || tile.isPitTile() ) {
-            robot.removeFromBoard();
+        if (!tile || tile.isPitTile()) {
             return true;
         }
 
-        for (let otherRobot of this.robots) {
-            if (otherRobot.position.x == newPosition.x && otherRobot.position.y == newPosition.y) {
-                if (!this.attemptMoveRobot(otherRobot, direction)) {
-                   return false;
-                }
-            }
+        let pushedRobot = this.robots.filter(x => x.position.equals(newPosition))[0];
+        
+        return !pushedRobot || this.canMoveRobot(pushedRobot, direction);
+    }
+
+    protected async moveRobotOneTile(robot: Robot, direction: Direction) {
+        if (!this.canMoveRobot(robot, direction)) {
+            return;
         }
-        robot.position = newPosition;
+
+        let newPosition = robot.position.getAdjacentPosition(direction);
+        let tile: BoardTile = this.getTile(newPosition);
+        if (!tile || tile.isPitTile()) {
+            robot.removeFromBoard();
+            return;
+        }
+
+        let pushedRobot = this.robots.filter(x => x.position.equals(newPosition))[0];
+        if (pushedRobot)
+            await Promise.all([this.moveRobotOneTile(pushedRobot, direction), robot.moveAsync(newPosition)]);
+        else
+            await robot.moveAsync(newPosition);
     }
 
     public hasObstacleInDirection(tilePosition: Point, direction: Direction) {
@@ -116,27 +129,27 @@ class Board {
         return false;
     }
 
-    public runRobotProgram(robot: Robot, programAction: ProgramCard) {
+    public async runRobotProgram(robot: Robot, programAction: ProgramCard) {
         if (!this.isPositionOnBoard(robot.position)) {
             return;
         }
         switch (programAction.type) {
             case ProgramCardType.ROTATE:
-                robot.rotate(programAction.distance);
+                await robot.rotateAsync(programAction.distance);
                 break;
             case ProgramCardType.MOVE:
-                this.moveRobot(robot, programAction.distance, robot.orientation);
+                await this.moveRobot(robot, programAction.distance, robot.orientation);
                 break;
         }
     }
 
-    public executeBoardElements(phase: number) {
-        this.runConveyorBelts();
-        this.runPushers(phase);
-        this.runGears();
+    public async executeBoardElementsAsync(phase: number) {
+        await this.runConveyorBeltsAsync();
+        await this.runPushersAsync(phase);
+        await this.runGearsAsync();
     }
 
-    private runConveyorBelts() {
+    private async runConveyorBeltsAsync() {
         console.log('Running Conveyor Belts...');
         // move robots that are on conveyor belts
         for (let robot of this.robots) {
@@ -147,20 +160,20 @@ class Board {
                 console.log("Moving robot in (" + robot.position.x + ", " + robot.position.y + ") - Direction: " + moveDirection);
                 // perform conveyor rotation
                 let newTile = this.getTile(robot.position.getAdjacentPosition(moveDirection));
-                this.moveRobotAlongConveyor(robot, moveDirection);
+                this.moveRobotAlongConveyorAsync(robot, moveDirection);
                 if (newTile) {
                     let rotation = newTile.conveyorBeltRotationFromDirection(moveDirection.opposite());
                     console.log("Rotation: " + rotation)
-                    robot.rotate(rotation);
+                    await robot.rotateAsync(rotation);
                 }
                 
             }
         }
     }
 
-    private moveRobotAlongConveyor(robot: Robot, direction: Direction) {
+    private async moveRobotAlongConveyorAsync(robot: Robot, direction: Direction) {
         let newPosition = robot.position.getAdjacentPosition(direction);
-        robot.position = newPosition;
+        await robot.moveAsync(newPosition);
         let tile: BoardTile = this.getTile(newPosition);
         if ( !tile || tile.isPitTile() ) {
             robot.removeFromBoard();
@@ -190,13 +203,15 @@ class Board {
 
     public robotInPosition(position: Point) {
         for (let robot of this.robots) {
-            if (robot.position.x == position.x && robot.position.y == position.y)
+            if (robot.position.equals(position))
                 return robot;
         }
         return null;
     }
 
-    private runPushers(phase: number) {
+    private async runPushersAsync(phase: number) {
+        let promises: Promise<void>[] = [];
+
         for (let robot of this.robots) {
             var tile: Phaser.Tile = this.map.getTile(robot.position.x, robot.position.y, "Wall Layer");
             if (tile == null) {
@@ -204,40 +219,46 @@ class Board {
             }
 
             if (tile.index == Tiles.Pusher135 && phase % 2 == 0) {
-                this.attemptMoveRobot(robot, Direction.fromRadians(tile.rotation + PiOver2));
+                promises.push(this.moveRobotOneTile(robot, Direction.fromRadians(tile.rotation + PiOver2)));
             }
             else if (tile.index == Tiles.Pusher24 && phase % 2 == 1) {
-                this.attemptMoveRobot(robot, Direction.fromRadians(tile.rotation + PiOver2));
+                promises.push(this.moveRobotOneTile(robot, Direction.fromRadians(tile.rotation + PiOver2)));
             }
         }
+
+        await Promise.all(promises);
     }
 
-    private runGears() {
+    private async runGearsAsync() {
+        let promises: Promise<void>[] = [];
+
         for (let robot of this.robots) {
             var tile: Phaser.Tile = this.map.getTile(robot.position.x, robot.position.y, "Floor Layer");
             if (tile.index == Tiles.GearCCW) {
-                robot.rotate(-1);
+                promises.push(robot.rotateAsync(-1));
             }
             else if (tile.index == Tiles.GearCW) {
-                robot.rotate(1);
+                promises.push(robot.rotateAsync(1));
             }
         }
+
+        await Promise.all(promises);
     }
 
-    public fireLasers() {
+    public async fireLasersAsync() {
+        // TODO: figure out how long lasers take instead of using a constant delay. If using moving projectiles, they should complete
+        // when they hit the robot. If using instant-firing beams, they should complete when their animation finishes.
         for (let laser of this.lasers) {
             laser.fire();
         }
+
+        await delay(500);   // give the players 500 ms to watch the lasers fire.
     }
 
-    public touchFlags() {
-        for (let flag of this.flags) {
-            for (let robot of this.robots) {
-                if (robot.position.x == flag.position.x
-                    && robot.position.y == flag.position.y) {
+    public async touchFlagsAsync() {
+        for (let flag of this.flags)
+            for (let robot of this.robots)
+                if (robot.position.equals(flag.position))
                     flag.touchedBy(robot);
-                }
-            }
-        }
     }
 }

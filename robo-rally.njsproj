@@ -51,6 +51,7 @@
     <Content Include="app\node_modules\phaser\typescript\typings.json" />
     <Content Include="package.json" />
     <Content Include="app\README.md" />
+    <Compile Include="app\public\es6-promise.auto.min.js" />
     <Compile Include="app\server.js" />
     <Content Include="app\public\style.css" />
     <Compile Include="app\public\qrcode.min.js" />
@@ -120,6 +121,9 @@
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="app\typescript\turn-logic.ts" />
+    <TypeScriptCompile Include="app\typescript\utility.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="typings\jquery\jquery.d.ts" />
     <TypeScriptCompile Include="typings\phaser\box2d.d.ts" />
     <TypeScriptCompile Include="typings\phaser\p2.d.ts" />

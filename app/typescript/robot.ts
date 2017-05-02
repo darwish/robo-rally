@@ -29,13 +29,24 @@ class Robot {
         this.sprite.anchor.set(0.5);
     }
 
-    public rotate(quarterRotationsCW: number) {
+    public rotateAsync(quarterRotationsCW: number) {
         this._orientation = this._orientation.addTurns(quarterRotationsCW);
 
         let desiredAngle = this._orientation.toDegrees() + 180;
         let delta = Phaser.Math.wrapAngle(desiredAngle - this.sprite.angle)
 
-        phaserGame.add.tween(this.sprite).to({ angle: this.sprite.angle + delta }, 750, Phaser.Easing.Cubic.InOut, true);
+        return new Promise<void>(resolve =>
+            phaserGame.add.tween(this.sprite)
+                .to({ angle: this.sprite.angle + delta }, 750, Phaser.Easing.Cubic.InOut, true)
+                .onComplete.add(resolve));
+    }
+
+    public moveAsync(val: BoardPosition) {
+        this._position = val.clone();
+        let pixelPos = val.toCenterPixelPosition();
+        this.sprite.visible = true;
+
+        return new Promise<void>(resolve => phaserGame.add.tween(this.sprite).to({ x: pixelPos.x, y: pixelPos.y }, 750, Phaser.Easing.Cubic.InOut, true).onComplete.add(resolve));
     }
 
     get orientation() {
@@ -58,13 +69,6 @@ class Robot {
         return this._position.clone();
     }
 
-    set position(val: BoardPosition) {
-        this._position = val.clone();
-        let pixelPos = val.toCenterPixelPosition();
-        phaserGame.add.tween(this.sprite).to({ x: pixelPos.x, y: pixelPos.y }, 750, Phaser.Easing.Cubic.InOut, true);
-        this.sprite.visible = true;
-    }
-
     get x(): number {
         return this._position.x;
     }
@@ -78,23 +82,12 @@ class Robot {
     }
 
     public dealDamage(damageAmount: number) {
-        if (this.health - damageAmount <= 0) {
-            this.health = 0;
-        }
-        else {
-            this.health -= damageAmount;
-        }
-
+        this.health = Math.max(this.health - damageAmount, 0);
         this.updateLockedRegisters();
     }
 
     public healDamage(healingAmount: number) {
-        if (this.health + healingAmount >= this.maxHealth) {
-            this.health = this.maxHealth;
-        } else {
-            this.health += healingAmount;
-        }
-
+        this.health = Math.min(this.health + healingAmount, this.maxHealth);
         this.updateLockedRegisters();
     }
 

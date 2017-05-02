@@ -1,22 +1,7 @@
 /// <reference path="../../typings/phaser/phaser.comments.d.ts"/>
 /// <reference path="../../typings/jquery/jquery.d.ts"/>
 /// <reference path="../../typings/socket.io-client/socket.io-client.d.ts"/>
-
-declare var window: Window;
-declare var QRCode: any;
-declare var clientGame: ClientGame;
-declare var socket: SocketIOClient.Socket;
-const PiOver2 = Math.PI / 2;
-import Point = Phaser.Point;
-
-interface Math {
-    /** Returns -1 if x < 0, 1 if x > 0 and 0 if x == 0 */
-    sign(x: number): number
-}
-
-Math.sign = function (x: number) {
-    return x == 0 ? 0 : x < 0 ? -1 : 1;
-}
+/// <reference path="utility.ts"/>
 
 var phaserGame: Phaser.Game, map: Phaser.Tilemap, wallLayer: Phaser.TilemapLayer, board: Board, laserProjectile: Phaser.Weapon;
 
@@ -32,12 +17,6 @@ class Main {
     public cards: ProgramCard[];
     public selectedCards: ProgramCard[] = [];
     public playerSubmittedCards: { [key: string]: ProgramCard[]; } = {};
-
-    private turnLogic: TurnLogic = null;
-
-    constructor() {
-        this.globalCardDeck = CardDeck.newProgramDeck();
-    }
 
     public preload() {
         phaserGame.load.baseURL = '/';
@@ -68,16 +47,7 @@ class Main {
     }
 
     public update() {
-        if (this.gameState == GameState.PlayingActions) {
-            if (this.turnLogic != null) {
-                if (this.turnLogic.isDoneAllPhases()) {
-                    this.startNewTurn();
-                }
-                else {
-                    this.turnLogic.update();
-                }
-            }
-        }
+
     }
 
     public render() {
@@ -169,7 +139,8 @@ class Main {
 
             $('.playersList .playerItem').filter(function () { return $(this).data('player').id == submittedTurn.playerId; }).addClass('submitted');
 
-            this.checkForAllPlayerSubmissions();
+            if (this.allPlayersSubmitted)
+                this.runNextTurnAsync();
         });
     }
 
@@ -187,6 +158,8 @@ class Main {
     }
 
     public dealCards(handSizes: number[]) {
+        // return all cards to the deck (by simply recreating the deck in its initial state)
+        this.globalCardDeck = CardDeck.newProgramDeck();    
         return this.globalCardDeck.deal(handSizes);
     }
 
@@ -233,20 +206,28 @@ class Main {
             playerId: clientGame.clientId.id,
             cards: this.selectedCards
         });
-        this.checkForAllPlayerSubmissions();
+
+        this.selectedCards = [];
+
+        if (this.allPlayersSubmitted())
+            this.runNextTurnAsync();
     }
 
-    public checkForAllPlayerSubmissions() {
-        if (Object.keys(this.playerSubmittedCards).length == clientGame.getPlayers().length) {
-            this.gameState = GameState.PlayingActions;
+    public allPlayersSubmitted() {
+        return Object.keys(this.playerSubmittedCards).length == clientGame.getPlayers().length;
+    }
 
-            var turns = [];
-            for (let clientId in this.playerSubmittedCards) {
-                var robot = Board.Instance.robots.filter((r) => r.playerID == clientId)[0];
-                turns.push(new RobotTurn(robot, this.playerSubmittedCards[clientId]));
-            }
-            this.turnLogic = new TurnLogic(turns);
+    public async runNextTurnAsync() {
+        this.gameState = GameState.PlayingActions;
+
+        var turns = [];
+        for (let clientId in this.playerSubmittedCards) {
+            var robot = Board.Instance.robots.filter((r) => r.playerID == clientId)[0];
+            turns.push(new RobotTurn(robot, this.playerSubmittedCards[clientId]));
         }
+
+        this.startNewTurn();
+        await TurnLogic.runAsync(turns);
     }
 }
 
