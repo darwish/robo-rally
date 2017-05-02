@@ -2,7 +2,6 @@ app/public/*.js
 app/public/*.js.map
 !app/public/qrcode.min.js
 !app/public/style.css
-!app/public/main.js
 assets/
 
 ## Ignore Visual Studio temporary files, build results, and
