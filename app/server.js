@@ -47,7 +47,7 @@ app.get('/deploy', function (request, response) {
         if (!error && !stdout.match(/^Up-to-date$/m)) {
             response.write('<div>Compiling typescript...</div>');
             exec(`cd ${__dirname}/.. && tsc`, (error, stdout, stderr) => {
-                response.write(`<br><div>Success. Restarting server...</div><div id=restarted></div>
+                response.write(`<div>Success. Restarting server...</div><div id=restarted></div>
                                 <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
                                 <script>setTimeout(function() { $.get('/ping', function() { $('#restarted').text('Done'); }); }, 1000);</script>`);
                 response.end();
