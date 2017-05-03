@@ -6,6 +6,7 @@ var express = require('express');
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
+const exec = require('child_process').exec;
 
 var env = process.env.NODE_ENV || 'dev';
 var games = {};
@@ -35,6 +36,18 @@ app.get("/g/:id", function (request, response) {
     }
 
     response.sendFile(__dirname + '/views/game.html');
+});
+
+// Not secured, but shouldn't do anything if there are no new commits in the repository
+app.get('/deploy', function (request, response) {
+    exec(__dirname + '/../deploy', (error, stdout, stderr) => {
+        if (error) {
+            console.error(`exec error: ${error}`);
+            return;
+        }
+
+        response.send({ stdout: stdout, stderr: stderr });
+    });
 });
 
 // listen for requests :)
