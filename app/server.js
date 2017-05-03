@@ -40,13 +40,14 @@ app.get("/g/:id", function (request, response) {
 
 // Not secured, but shouldn't do anything if there are no new commits in the repository
 app.get('/deploy', function (request, response) {
+    response.write('<div>Checking for new commits...</div>');
     exec(__dirname + '/../deploy', (error, stdout, stderr) => {
         response.write(`<div>${nl2br(stdout)}</div><div style="color: darkred;">${nl2br(stderr)}</div>`);
 
         if (!error && !stdout.match(/^Up-to-date$/m)) {
             response.write('<div>Compiling typescript...</div>');
             exec(`cd ${__dirname}/.. && tsc`, (error, stdout, stderr) => {
-                response.write(`<br><br><div>Success. Restarting server...</div><div id=restarted></div>
+                response.write(`<br><div>Success. Restarting server...</div><div id=restarted></div>
                                 <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
                                 <script>setTimeout(function() { $.get('/ping', function() { $('#restarted').text('Done'); }); }, 1000);</script>`);
                 response.end();
