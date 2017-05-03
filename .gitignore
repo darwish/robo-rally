@@ -1,5 +1,6 @@
 app/public/*.js
 app/public/*.js.map
+!es6-promise.auto.min.js
 !app/public/qrcode.min.js
 !app/public/style.css
 assets/

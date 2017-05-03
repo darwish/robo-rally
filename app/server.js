@@ -15,9 +15,9 @@ var games = {};
 // but feel free to use whatever libs or frameworks you'd like through `package.json`.
 
 // http://expressjs.com/en/starter/static-files.html
-app.use(express.static('public'));
+app.use(express.static(__dirname + '/public'));
 if (env == 'dev')
-    app.use('/typescript', express.static('typescript'));
+    app.use('/typescript', express.static(__dirname + '/typescript'));
 
 // http://expressjs.com/en/starter/basic-routing.html
 app.get("/", function (request, response) {

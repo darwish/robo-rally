@@ -52,10 +52,10 @@
     <Content Include="deploy" />
     <Content Include="package.json" />
     <Content Include="app\README.md" />
-    <Compile Include="app\public\es6-promise.auto.min.js" />
+    <Compile Include="app\public\js\es6-promise.auto.min.js" />
     <Compile Include="app\server.js" />
     <Content Include="app\public\style.css" />
-    <Compile Include="app\public\qrcode.min.js" />
+    <Compile Include="app\public\js\qrcode.min.js" />
     <Content Include="app\views\game.html" />
     <Content Include="tsconfig.json">
       <SubType>Code</SubType>
@@ -72,6 +72,7 @@
     <Folder Include="app\public\icomoon\fonts\" />
     <Folder Include="app\public\images\" />
     <Folder Include="app\public\maps\" />
+    <Folder Include="app\public\js\" />
     <Folder Include="app\typescript\" />
     <Folder Include="app\public" />
     <Folder Include="app\views" />
