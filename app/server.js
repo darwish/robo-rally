@@ -41,13 +41,23 @@ app.get("/g/:id", function (request, response) {
 // Not secured, but shouldn't do anything if there are no new commits in the repository
 app.get('/deploy', function (request, response) {
     exec(__dirname + '/../deploy', (error, stdout, stderr) => {
-        if (error) {
-            console.error(`exec error: ${error}`);
-            return;
-        }
+        var message = `<div>${nl2br(stdout)}</div><div style="color: darkred;">${nl2br(stderr)}</div>`;
 
-        response.send({ stdout: stdout, stderr: stderr });
+        if (!error && !stdout.match(/^Up-to-date$/m)) {
+            message += `<br><br><div>Success. Restarting server...</div><div id=restarted></div>
+<script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+<script>$.get('/ping', function() { $('#restarted').text('Done'); });</script>`;
+
+            response.send(message);
+            process.exit();
+        } else {
+            response.send(message);
+        }
     });
+});
+
+app.get('/ping', function (request, response) {
+    response.send('pong');
 });
 
 // listen for requests :)
@@ -95,4 +105,8 @@ function generateID() {
 
         return s;
     }
+}
+
+function nl2br(str) {
+    return (str + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br>$2');
 }

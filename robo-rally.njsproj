@@ -49,6 +49,7 @@
     <Content Include="app\public\images\robots.png" />
     <Content Include="app\public\images\Spritesheet Small.png" />
     <Content Include="app\node_modules\phaser\typescript\typings.json" />
+    <Content Include="deploy" />
     <Content Include="package.json" />
     <Content Include="app\README.md" />
     <Compile Include="app\public\es6-promise.auto.min.js" />

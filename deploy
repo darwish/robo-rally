@@ -10,5 +10,5 @@ BASE=$(git merge-base @ "$UPSTREAM")
 if [ $LOCAL = $REMOTE ] || [ $REMOTE = $BASE ]; then
     echo "Up-to-date"
 else
-    git pull && tsc && pm2 restart server
+    git pull && tsc
 fi
