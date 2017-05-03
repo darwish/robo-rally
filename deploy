@@ -1,6 +1,6 @@
 #!/bin/sh
 
-git remote update
+git remote update >/dev/null
 
 UPSTREAM=${1:-'@{u}'}
 LOCAL=$(git rev-parse @)
@@ -10,5 +10,5 @@ BASE=$(git merge-base @ "$UPSTREAM")
 if [ $LOCAL = $REMOTE ] || [ $REMOTE = $BASE ]; then
     echo "Up-to-date"
 else
-    git pull && tsc
+    git pull
 fi
