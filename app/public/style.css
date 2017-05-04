@@ -128,3 +128,81 @@ header h1 {
 .cardContainer > * {
     vertical-align: top;
 }
+
+/* Found at http://nicolasgallagher.com/pure-css-speech-bubbles/demo/ */
+/* THE SPEECH BUBBLE
+------------------------------------------------------------------------------------------------------------------------------- */
+
+.speech-bubble {
+    position: absolute;
+    padding: 15px;
+    margin: 1em 0 3em;
+    border: 5px solid lightblue;
+    color: #333;
+    background: #fff;
+    /* css3 */
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    display: inline-block;
+    min-width: 64px;
+    text-align: center;
+    max-width: 240px;
+    transition: transform 0.5s;
+    transform-origin: 35px 125%;
+}
+
+/* THE TRIANGLE
+------------------------------------------------------------------------------------------------------------------------------- */
+
+.speech-bubble:before {
+    content: "";
+    position: absolute;
+    bottom: -20px; /* value = - border-top-width - border-bottom-width */
+    left: 10px; /* controls horizontal position */
+    border-width: 20px 20px 0;
+    border-style: solid;
+    border-color: lightblue transparent;
+    /* reduce the damage in FF3.0 */
+    display: block;
+    width: 0;
+}
+
+/* creates the smaller  triangle */
+.speech-bubble:after {
+    content: "";
+    position: absolute;
+    bottom: -13px; /* value = - border-top-width - border-bottom-width */
+    left: 17px; /* value = (:before left) + (:before border-left) - (:after border-left) */
+    border-width: 13px 13px 0;
+    border-style: solid;
+    border-color: #fff transparent;
+    /* reduce the damage in FF3.0 */
+    display: block;
+    width: 0;
+}
+
+.scale0 {
+    transform:scale(0);
+}
+
+/* ============================================================================================================================ */
+
+input.chat {
+    height: 30px;
+    width: 100%;
+    bottom: -30px;
+    left: 0;
+    background: black;
+    opacity: 0.7;
+    color: lime;
+    position: fixed;
+    padding: 0 10px;
+    border: none;
+    font-family: Consolas, monospace;
+    transition: bottom 0.5s;
+}
+
+input.chat:focus {
+    outline-color: lime;
+}

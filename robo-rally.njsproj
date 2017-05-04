@@ -35,6 +35,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
   <ItemGroup>
+    <Content Include=".gitignore" />
     <Content Include="app\public\icomoon\fonts\icomoon.eot" />
     <Content Include="app\public\icomoon\fonts\icomoon.svg" />
     <Content Include="app\public\icomoon\fonts\icomoon.ttf" />
@@ -92,6 +93,9 @@
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="app\typescript\card-deck.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="app\typescript\chat.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="app\typescript\client-game.ts">

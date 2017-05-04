@@ -89,4 +89,8 @@ class ClientGame {
             this.clientId.friendlyName  = localStorage['friendlyName'] = generateName();
        }
     }
+
+    public getRobot(playerID = this.clientId) {
+        return Board.Instance.robots.filter(x => x.playerID == playerID.id)[0];
+    }
 }

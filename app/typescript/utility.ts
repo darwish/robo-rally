@@ -18,3 +18,39 @@ Math.sign = function (x: number) {
 function delay(milliseconds: number) {
     return new Promise<void>(resolve => setTimeout(resolve, milliseconds));
 }
+
+interface String {
+    toSentenceCase(): string;
+    hash(): number;
+}
+
+String.prototype.toSentenceCase = function () {
+    if (this.length == 0)
+        return '';
+
+    let result = '';
+    let capitalizeNext = true;
+
+    for (let i = 0; i < this.length; i++) {
+        let c: string = this.charAt(i);
+        if (c.match(/[.?!\r\n]/))
+            capitalizeNext = true;
+
+        if (capitalizeNext && c.match(/\w/)) {
+            c = c.toUpperCase();
+            capitalizeNext = false;
+        }
+
+        result += c;
+    }
+
+    return result;
+}
+
+String.prototype.hash = function () {
+    let hash = 0;
+    for (let i = 0; i < this.length; i++)
+        hash += this.charCodeAt(i) * (i + 1);
+
+    return hash;
+}

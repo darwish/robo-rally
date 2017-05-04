@@ -72,15 +72,16 @@ io.on('connection', function (socket) {
     socket.on('join', function(data) {
         socket.join(data.gameId);
         socket.gameId = data.gameId;
+        socket.clientId = data.clientId;
 
         socket.to(data.gameId).emit('joined', data.clientId);
     });
 
     // The server should just be a dumb relay. Forward messages to other sockets in the same game.
-    var events = ['broadcastPlayers', 'gameStart', 'dealtCards', 'submitTurn', 'powerDown', 'useOptionCard', 'gameSettings', 'gameState'];
+    var events = ['broadcastPlayers', 'gameStart', 'dealtCards', 'submitTurn', 'powerDown', 'useOptionCard', 'gameSettings', 'gameState', 'chat'];
     for (let i = 0; i < events.length; i++) {
         socket.on(events[i], function (data) {
-            data.sender = socket.id;
+            data.sender = socket.clientId;
             socket.to(socket.gameId).emit(events[i], data);
         });
     }

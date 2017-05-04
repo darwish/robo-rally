@@ -8,7 +8,7 @@
     "sourceMap": true,
     "target": "es5",
     "lib": ["dom", "es5", "es2015.promise"],
-    "outFile": "app/public/main.js"
+    "outFile": "app/public/js/main.js"
   },
   "include": [
     "app/typescript",

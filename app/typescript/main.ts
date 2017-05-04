@@ -260,5 +260,7 @@ function initRoboRally() {
     $('.quitGame').click(() => main.quitGame());
     $('.cardContainer').on('click', '.cardChoice', function () { main.chooseCard(this); });
     $('.submitCards').click(() => main.submitSelectedCards());
+
+    Chat.initialize('.chat');
 }
 
