@@ -1,8 +1,5 @@
-app/public/js/*.js
-app/public/js/*.js.map
-!es6-promise.auto.min.js
-!app/public/js/qrcode.min.js
-!app/public/style.css
+app/public/js/main.js
+app/public/js/main.js.map
 assets/
 
 ## Ignore Visual Studio temporary files, build results, and
