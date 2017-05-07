@@ -30,6 +30,10 @@ body {
 	.toggleBoard::before {
 		content: "Show ";
 	}
+
+	.gameInfo { 
+		display: none;
+	}
 }
 
 .toggleBoard.off::before {

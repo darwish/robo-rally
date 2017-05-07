@@ -244,8 +244,8 @@ function initRoboRally() {
 	clientGame = new ClientGame(gameId);
 	socket = io();
 
-	$('.gameInfo').show();
-	new QRCode($(".qrcode")[0], { text: "https://robo-rally.glitch.me/g/" + gameId, width: 66, height: 66 });
+	$('.gameInfo').removeClass('hidden');
+	new QRCode($(".qrcode")[0], { text: '' + location, width: 66, height: 66 });
 
 	if (!clientGame.isHost()) {
 		clientGame.loadOrJoin();
