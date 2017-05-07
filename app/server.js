@@ -49,7 +49,7 @@ app.get('/deploy', function (request, response) {
             exec(`cd ${__dirname}/.. && tsc`, (error, stdout, stderr) => {
                 response.write(`<div>Success. Restarting server...</div><div id=restarted></div>
                                 <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
-                                <script>setTimeout(function() { $.get('/ping', function() { $('#restarted').text('Done'); }); }, 1000);</script>`);
+                                <script>setTimeout(function() { $.get('/ping', function() { $('#restarted').text('Done'); }); }, 3000);</script>`);
                 response.end();
                 process.exit();
             });

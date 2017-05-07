@@ -1,0 +1,53 @@
+<svg width="75.912mm" height="75.912mm" version="1.1" viewBox="0 0 75.912155 75.912155" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <style type="text/css">
+	@keyframes powerDownStop1Hover {
+		from { stop-color: #d40000; }
+		to { stop-color: #ff2323; }
+	}
+
+	@keyframes powerDownStop2Hover {
+		from { stop-color: #6a0000; }
+		to { stop-color: #aa0000; }
+	}
+	
+	svg:hover stop {
+		animation-duration: 0.5s;
+		animation-iteration-count: infinite;
+		animation-direction: alternate;
+		animation-timing-function: linear;
+	}
+	
+	svg:hover stop:first-child {
+		animation-name: powerDownStop1Hover;
+	}
+	
+	svg:hover stop:nth-child(2) {
+		animation-name: powerDownStop2Hover;
+	}
+	
+	svg:hover stop:nth-child(3) {
+		stop-color: #666;
+	}
+
+	path, text {
+		cursor: pointer;
+	}
+	
+	.all:hover .outline {
+		fill: #666;
+	}
+  </style>
+ <defs>
+  <radialGradient id="powerDownGradient" cx="49.958" cy="140.86" r="41.083" gradientTransform="matrix(.85459 -.22899 .22899 .85459 -36.993 -70.983)" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#d40000" offset="0"/>
+   <stop stop-color="#6a0000" offset=".72898"/>
+   <stop offset="1"/>
+  </radialGradient>
+ </defs>
+ <g class="all">
+	 <path class="outline" d="m75.923 22.234c-4.83e-4 10.481-9.67e-4 20.963-0.0015 31.444-7.4126 7.4114-14.825 14.823-22.238 22.234-10.482 3e-6 -20.965-4e-6 -31.447-2e-6 -7.4118-7.4114-14.824-14.823-22.236-22.234 4.837e-4 -10.481 9.6386e-4 -20.963 0.0014478-31.444 7.4126-7.4114 14.825-14.823 22.238-22.234 10.482 2.2369e-6 20.965-5.282e-7 31.447-2.9107e-6 7.4119 7.4114 14.824 14.823 22.236 22.234z" stroke-width=".2646"/>
+	 <path d="m71.184 24.193c0 9.1756-1e-6 18.351-1e-6 27.527-6.4881 6.4881-12.976 12.976-19.464 19.464-9.1756 3e-6 -18.351-3e-6 -27.527-1e-6 -6.4881-6.4881-12.976-12.976-19.464-19.464 4e-7 -9.1756-2.3e-6 -18.351-1.6e-6 -27.527 6.4881-6.4881 12.976-12.976 19.464-19.464 9.1756 2e-6 18.351-5e-7 27.527-2.6e-6 6.4881 6.4881 12.976 12.976 19.464 19.464z" fill="#fff" stroke-width=".23162"/>
+	 <path class="powerDownBackground" d="m68.526 25.294c0 8.4415-1e-6 16.883-2e-6 25.325-5.9691 5.9691-11.938 11.938-17.907 17.907-8.4415 3e-6 -16.883-3e-6 -25.325-1e-6 -5.9691-5.9691-11.938-11.938-17.907-17.907 5e-7 -8.4415-1.9e-6 -16.883-1.3e-6 -25.325 5.9691-5.9691 11.938-11.938 17.907-17.907 8.4415 1.8e-6 16.883-4e-7 25.325-2.2e-6 5.9691 5.9691 11.938 11.938 17.907 17.907z" fill="url(#powerDownGradient)" stroke-width=".21309"/>
+	 <text x="37.844509" y="35.93885" fill="#ffffff" font-family="Arial" font-size="13.551px" font-weight="900" letter-spacing="0px" stroke-width=".33877" text-anchor="middle" word-spacing="0px" style="line-height:1" xml:space="preserve"><tspan x="37.844509" y="35.93885" text-align="center" style="line-height:1">POWER</tspan><tspan x="37.844509" y="49.546215" text-align="center" style="line-height:1">DOWN</tspan></text>
+ </g>
+</svg>

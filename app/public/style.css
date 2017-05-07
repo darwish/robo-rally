@@ -17,6 +17,29 @@ body {
     display: none;
 }
 
+.toggleBoard::before {
+    content: "Hide ";
+}
+
+/* The board is hidden by default on phones. */
+@media only screen and (max-device-width : 640px) {
+    #gameContainer {
+        display: none;
+    }
+
+    .toggleBoard::before {
+        content: "Show ";
+    }
+}
+
+.toggleBoard.off::before {
+    content: "Show ";
+}
+
+.toggleBoard.on::before {
+    content: "Hide ";
+}
+
 .qrcode img {
     display: inline-block !important;
     vertical-align: middle;
@@ -39,6 +62,10 @@ header h1 {
     font-weight: bold;
 }
 
+.toolbar {
+    margin-bottom: 10px;
+}
+
 .cardChoice {
     cursor: pointer;
     position: relative;
@@ -47,7 +74,7 @@ header h1 {
     border-radius: 5px;
     width: 60px;
     height: 60px;
-    margin: 15px 2px 6px;
+    margin: 0 2px;
     padding: 5px;
     padding-top: 11px;
     background: lightyellow;
@@ -103,6 +130,11 @@ header h1 {
     top: 2px;
 }
 
+.cardContainer {
+    display: inline-block;
+    vertical-align: top;
+}
+
 .cardContainer .collapse {
     display: inline-block;
     transition: margin-left 0.5s;
@@ -127,6 +159,10 @@ header h1 {
 
 .cardContainer > * {
     vertical-align: top;
+}
+
+.playerControls {
+    margin: 15px 0 6px 0;
 }
 
 /* Found at http://nicolasgallagher.com/pure-css-speech-bubbles/demo/ */
@@ -205,4 +241,12 @@ input.chat {
 
 input.chat:focus {
     outline-color: lime;
+}
+
+.powerDownButton {
+    width: 60px;
+}
+
+.powerDownButton path {
+    cursor: pointer;
 }

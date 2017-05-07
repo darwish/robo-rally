@@ -1,13 +1,13 @@
 ﻿class Laser {
     private sprites: Phaser.Sprite[] = [];
     private beams: Phaser.Line[] = [];
-    private direction: Point;
+    private _direction: Point;
 
-    constructor(public position: BoardPosition, facingDirection: Direction, public damagePower: number) {
+    constructor(public position: BoardPosition, public direction: Direction, public damagePower: number) {
 
         let pixelPos = position.toPixelPosition();
-        let rot = facingDirection.toRadians() - PiOver2;
-        this.direction = facingDirection.toVector();
+        let rot = direction.toRadians() - PiOver2;
+        this._direction = direction.toVector();
 
         pixelPos.x += 10;
         pixelPos.y += map.tileHeight / 2;
@@ -27,9 +27,9 @@
             sprite.rotation = rot;
             this.sprites.push(sprite);
 
-            let start = Point.multiply(this.direction, new Point(14, 14)).add(p.x, p.y);
-            let length = this.findBeamLength(position, this.direction);
-            let end = new Point(length * this.direction.x + start.x, length * this.direction.y + start.y);
+            let start = Point.multiply(this._direction, new Point(14, 14)).add(p.x, p.y);
+            let length = this.findBeamLength(position, this._direction);
+            let end = new Point(length * this._direction.x + start.x, length * this._direction.y + start.y);
 
             this.beams.push(new Phaser.Line(start.x, start.y, end.x, end.y));
         }
@@ -66,19 +66,7 @@
     }
 
     public fire() {
-        var robots = Board.Instance.robots;
-        let target: Robot = null;
-        let dir = Direction.fromVector(this.direction);
-
-        let current = this.position.clone();
-        while (board.isPositionOnBoard(current)) {
-            if (target = board.robotInPosition(current))
-                break;
-            else if (board.hasObstacleInDirection(current, dir))
-                break;
-
-            Point.add(current, this.direction, current);
-        }
+        var target = Board.Instance.getTarget(this);
 
         if (target) {
             target.dealDamage(this.damagePower);

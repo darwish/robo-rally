@@ -1,5 +1,7 @@
 ﻿class Chat {
     private static runs: { [robotID: string]: number } = {};
+    private static sounds: Phaser.Sound[] = [];
+    static chatInput: HTMLInputElement;
 
     static async say(message: string, player = clientGame.clientId, speakRobot = true) {
         if (!Chat.runs[player.id])
@@ -16,12 +18,12 @@
         if (!bubble.length)
             bubble = $('<div>').addClass('speech-bubble scale0').data('robot', robot).appendTo('#gameContainer');
 
+        Chat.getSound(message).play();
         bubble.text(message);
         let p = Point.subtract(robot.position.toPixelPosition(), trianglePoint);
         let offset = $(phaserGame.canvas).offset();
         p.add(offset.left + robot.sprite.width / 2, offset.top - bubble[0].offsetHeight);
         bubble.css({ left: p.x, top: p.y });
-
 
         // animate in, wait 10s, animate out.
         await delay(20);
@@ -41,25 +43,21 @@
         return englishMessage.toLowerCase().replace(/[a-zA-Z0-9_']+/g, x => robotWords[x.hash() % robotWords.length]).toSentenceCase();
     }
 
+    static getSound(message: string) {
+        return this.sounds[message.hash() % this.sounds.length];
+    }
+
     static initialize(chatBox: JQuery | string | Element) {
         chatBox = $(chatBox);
-        let chat = <HTMLInputElement>chatBox[0];
+        let chat = Chat.chatInput = <HTMLInputElement>chatBox[0];
         
         $(document).on('keydown', function (e) {
             if (e.keyCode == 192) {   // backtick (`) key
-                if (chat.disabled) {
-                    chat.style.bottom = '0px';
-                    chat.disabled = false;
-                    chat.focus();
-                    e.preventDefault();
-                } else {
-                    chat.style.bottom = '-30px';
-                    chat.disabled = true;
-                    chat.value = '';
-                }
+                Chat.toggleChatInput();
+                e.preventDefault();
             }
         });
-
+        
         chatBox.on('keydown', function (e) {
             if (e.keyCode == 13) {   // enter key
                 Chat.say(chat.value);
@@ -71,5 +69,32 @@
         socket.on('chat', data => {
             Chat.say(data.message, data.sender);
         });
+
+        let sounds = [];
+        for (let i = 1; i <= 5; i++) {
+            this.sounds.push(phaserGame.add.audio('beepbeep' + i, 0.2));
+        }
+    }
+
+    static toggleChatInput() {
+        if (Chat.chatInput)
+            Chat.setChatInput(Chat.chatInput.disabled);
+    }
+
+    static setChatInput(enabled: boolean) {
+        let chat = Chat.chatInput;
+        if (!chat)
+            return;
+
+        if (enabled) {
+            chat.style.bottom = '0px';
+            chat.disabled = false;
+            chat.focus();
+        } else {
+            chat.style.bottom = '-30px';
+            chat.disabled = true;
+            chat.value = '';
+        }
+
     }
 }

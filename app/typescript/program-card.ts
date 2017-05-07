@@ -4,7 +4,7 @@
 }
 
 class ProgramCard {
-    constructor(public type: ProgramCardType, public distance: number, public priority: number) { }
+    constructor(public readonly type: ProgramCardType, public readonly distance: number, public readonly priority: number) { }
 
     public toString() {
         return this.getName() + " (priority " + this.priority + ")";

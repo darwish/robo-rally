@@ -7,6 +7,11 @@ class Board {
     public lasers: Laser[] = [];
     public flags: Flag[] = [];
 
+    private turnsData: RobotTurn[];
+
+    private _phase: number;
+    public get phase() { return this._phase; }
+
     constructor(public map: Phaser.Tilemap)
     {
         if (Board.Instance != null) {
@@ -50,10 +55,18 @@ class Board {
         this.robots = [];
     }
 
+    // For Radio Control and other option cards.
+    public changeRobotProgram(robot: Robot, newProgram: ProgramCard[]) {
+        let turn = this.turnsData.filter(x => x.robot == robot)[0];
+        turn.programCards = newProgram;
+    }
+
     public async runTurnAsync(turnsData: RobotTurn[]) {
-        for (let i = 0; i < Board.PHASE_COUNT; i++) {
-            await this.runRobotMovementAsync(turnsData, i);
-            await this.executeBoardElementsAsync(i);
+        this.turnsData = turnsData; // turn data can be altered by some options cards
+
+        for (this._phase = 0; this._phase < Board.PHASE_COUNT; this._phase++) {
+            await this.runRobotMovementAsync(turnsData, this._phase);
+            await this.executeBoardElementsAsync(this._phase);
             await this.fireLasersAsync();
             await this.touchFlagsAsync();
         }
@@ -151,12 +164,22 @@ class Board {
         if (!this.isPositionOnBoard(robot.position)) {
             return;
         }
+
+        let usedOptions = robot.optionCards.filter(x => x.mustUse(robot));
+        if (robot.optionCards.some(x => x.canChoose(robot))) {
+            // TODO: allow user to choose option cards to use. Eligible cards should be highlighted, and the player
+            // should be given some time to click on them. More than one option card may be used.
+        }
+
+        for (let card of usedOptions)
+            programAction = card.activate(robot) || programAction;
+
         switch (programAction.type) {
             case ProgramCardType.ROTATE:
                 await robot.rotateAsync(programAction.distance);
                 break;
             case ProgramCardType.MOVE:
-                await this.moveRobot(robot, programAction.distance, robot.orientation);
+                await this.moveRobot(robot, programAction.distance, robot.direction);
                 break;
         }
     }
@@ -278,5 +301,23 @@ class Board {
             for (let robot of this.robots)
                 if (robot.position.equals(flag.position))
                     flag.touchedBy(robot);
+    }
+
+    /** Returns the robot the passed attacker can shoot, or null if it doesn't have line-of-sight to any robot. */
+    public getTarget(attacker: { position: BoardPosition, direction: Direction }) {
+        let target: Robot = null;
+        let dir = attacker.direction;
+
+        let current = attacker.position.clone();
+        while (this.isPositionOnBoard(current)) {
+            if (target = this.robotInPosition(current))
+                break;
+            else if (this.hasObstacleInDirection(current, dir))
+                break;
+
+            Point.add(current, attacker.direction.toVector(), current);
+        }
+
+        return target;
     }
 }

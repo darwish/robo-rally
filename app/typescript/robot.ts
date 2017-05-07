@@ -11,7 +11,7 @@ class Robot {
 
     readonly maxHealth = 10;
 
-    constructor(public playerID: string, private _position: BoardPosition, private _orientation: Direction, public lives: number, spriteIndex: number = Robot.pickRandomSprite(), health = 10) {
+    constructor(public playerID: string, private _position: BoardPosition, private _direction: Direction, public lives: number, spriteIndex: number = Robot.pickRandomSprite(), health = 10) {
 
         this.isPoweredDown = false;
         this.optionCards = [];
@@ -22,7 +22,7 @@ class Robot {
 
         let pixelPos = _position.toCenterPixelPosition();
         this.sprite = phaserGame.add.sprite(pixelPos.x, pixelPos.y, 'robots');
-        this.sprite.angle = _orientation.toDegrees() + 180;
+        this.sprite.angle = _direction.toDegrees() + 180;
         this.sprite.frame = spriteIndex;
         this.sprite.maxHealth = this.maxHealth;
         this.sprite.health = health;
@@ -30,9 +30,9 @@ class Robot {
     }
 
     public rotateAsync(quarterRotationsCW: number) {
-        this._orientation = this._orientation.addTurns(quarterRotationsCW);
+        this._direction = this._direction.addTurns(quarterRotationsCW);
 
-        let desiredAngle = this._orientation.toDegrees() + 180;
+        let desiredAngle = this._direction.toDegrees() + 180;
         let delta = Phaser.Math.wrapAngle(desiredAngle - this.sprite.angle)
 
         return new Promise<void>(resolve =>
@@ -49,8 +49,8 @@ class Robot {
         return new Promise<void>(resolve => phaserGame.add.tween(this.sprite).to({ x: pixelPos.x, y: pixelPos.y }, 750, Phaser.Easing.Cubic.InOut, true).onComplete.add(resolve));
     }
 
-    get orientation() {
-        return this._orientation;
+    get direction() {
+        return this._direction;
     }
 
     private static pickRandomSprite() {
@@ -100,5 +100,10 @@ class Robot {
         this._position.x = undefined;
         this._position.y = undefined;
         this.sprite.visible = false;
+    }
+
+    /** Returns the robot we can shoot if any, or null. */
+    public getTarget() {
+        return Board.Instance.getTarget(this);
     }
 }

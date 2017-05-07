@@ -42,6 +42,7 @@
     <Content Include="app\public\icomoon\fonts\icomoon.woff" />
     <Content Include="app\public\icomoon\style.css" />
     <Content Include="app\public\images\laser-projectile.png" />
+    <Content Include="app\public\images\power-down.svg" />
     <Content Include="app\public\maps\Cross.json" />
     <Content Include="app\assets\Cross.tmx" />
     <Content Include="app\public\images\Laser Segment.png" />
@@ -50,6 +51,11 @@
     <Content Include="app\public\images\robots.png" />
     <Content Include="app\public\images\Spritesheet Small.png" />
     <Content Include="app\node_modules\phaser\typescript\typings.json" />
+    <Content Include="app\public\sounds\beepbeep1.MP3" />
+    <Content Include="app\public\sounds\beepbeep2.mp3" />
+    <Content Include="app\public\sounds\beepbeep3.mp3" />
+    <Content Include="app\public\sounds\beepbeep4.mp3" />
+    <Content Include="app\public\sounds\beepbeep5.mp3" />
     <Content Include="deploy" />
     <Content Include="package.json" />
     <Content Include="app\README.md" />
@@ -74,6 +80,7 @@
     <Folder Include="app\public\images\" />
     <Folder Include="app\public\maps\" />
     <Folder Include="app\public\js\" />
+    <Folder Include="app\public\sounds\" />
     <Folder Include="app\typescript\" />
     <Folder Include="app\public" />
     <Folder Include="app\views" />

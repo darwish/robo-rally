@@ -29,6 +29,9 @@ class Main {
         phaserGame.load.image('laser-projectile', 'images/laser-projectile.png');
         phaserGame.load.spritesheet('robots', 'images/robots.png', 75, 75);
         phaserGame.load.tilemap('tilemap', 'maps/Cross.json', null, Phaser.Tilemap.TILED_JSON);
+
+        for (let i = 1; i <= 5; i++)
+            phaserGame.load.audio(`beepbeep${i}`, `sounds/beepbeep${i}.mp3`);
     }
 
     public create() {
@@ -44,10 +47,6 @@ class Main {
 
         board = new Board(map);
         initRoboRally();
-    }
-
-    public update() {
-
     }
 
     public render() {
@@ -145,6 +144,7 @@ class Main {
     }
 
     public showCards(cards: ProgramCard[]) {
+        $('.playerControls').removeClass('hidden');
         $('.statusText').html('Choose Your Cards');
 
         $('.cardContainer').empty();
@@ -207,6 +207,7 @@ class Main {
             cards: this.selectedCards
         });
 
+        clientGame.getRobot().registeredProgramCards = this.selectedCards;
         this.selectedCards = [];
 
         if (this.allPlayersSubmitted())
@@ -220,9 +221,9 @@ class Main {
     public async runNextTurnAsync() {
         this.gameState = GameState.PlayingActions;
 
-        var turns = [];
+        var turns:RobotTurn[] = [];
         for (let clientId in this.playerSubmittedCards) {
-            var robot = Board.Instance.robots.filter((r) => r.playerID == clientId)[0];
+            var robot = Board.Instance.robots.filter(r => r.playerID == clientId)[0];
             turns.push(new RobotTurn(robot, this.playerSubmittedCards[clientId]));
         }
 
@@ -234,7 +235,7 @@ class Main {
 var main: Main;
 function startGame() {
     main = new Main();
-    phaserGame = new Phaser.Game(900, 900, Phaser.AUTO, $('#gameContainer')[0], { preload: () => main.preload(), create: () => main.create(), update: () => main.update(), render: main.render });;
+    phaserGame = new Phaser.Game(900, 900, Phaser.CANVAS, $('#gameContainer')[0], { preload: () => main.preload(), create: () => main.create(), render: main.render });;
 }
 
 function initRoboRally() {
@@ -243,7 +244,6 @@ function initRoboRally() {
     clientGame = new ClientGame(gameId);
     socket = io();
 
-    $('.code').text(gameId)
     $('.gameInfo').show();
     new QRCode($(".qrcode")[0], { text: "https://robo-rally.glitch.me/g/" + gameId, width: 66, height: 66 });
 
