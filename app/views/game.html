@@ -1,66 +1,66 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-    <title>Robo Rally Game</title>
-    <meta name="description" content="Robo Rally Game">
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/style.css">
-    <link rel="stylesheet" href="/icomoon/style.css">
+	<title>Robo Rally Game</title>
+	<meta name="description" content="Robo Rally Game">
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="/style.css">
+	<link rel="stylesheet" href="/icomoon/style.css">
 </head>
 <body>
-    <header>
-        <div class="gameInfo hidden">
-            <p>
-                Go to <script class="currentDomain">document.currentScript.replaceWith(''+location);</script> to join this game.
-                <span class="qrcode"></span>
-            </p>
-        </div>
-    </header>
-    <main>
-        <h2 class="statusText">Waiting for players to join...</h2>
-        <ul class="playersList"></ul>
-        <div class="toolbar">
-            <button class="startGame hidden">Start game</button>
-            <button class="quitGame">Quit game</button>
-            <button class="toggleChat" title="`" onclick="Chat.toggleChatInput()">Chat</button>
-           <a href="#" class="toggleBoard">board</a>
-        </div>
-        <div class="playerControls hidden">
-            <div class="cardContainer"></div>
-            <object class="powerDownButton" data="/images/power-down.svg" type="image/svg+xml"></object>
-        </div>
-        
-        <button class="submitCards hidden">Submit Cards</button>
-        <div id="gameContainer"></div>
-        <input class="chat" disabled />
-    </main>
-    <script src="/js/jquery-3.2.1.min.js"></script>
-    <script src="/js/phaser.min.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="/js/es6-promise.auto.min.js"></script><!-- Promise polyfill for older browsers -->
-    <script src="/js/main.js"></script>
-    <script src="/js/qrcode.min.js"></script>
-    <script>
-        // We may save a bit of battery life on phones when the board is hidden by calling phaserGame.raf.stop() to stop all 
-        // updating. The game currently depends on tweens running, so we'd need to either enable updates while it's playing robot
-        // movements, have tweens complete instantly (since you don't see them anyway), or have tweens complete after a setTimeout
-        // (may be useful to keep turns in sync so it doesn't ask you if you want to use an option card before other players see the
-        // event that triggered it). I have no idea if the battery savings are significant.
-        $('.toggleBoard').click(function () {
-            if ($('#gameContainer').is(':visible'))
-                $(this).addClass('off').removeClass('on');
-            else
-                $(this).addClass('on').removeClass('off');
+	<header>
+		<div class="gameInfo hidden">
+			<p>
+				Go to <script class="currentDomain">document.currentScript.replaceWith(''+location);</script> to join this game.
+				<span class="qrcode"></span>
+			</p>
+		</div>
+	</header>
+	<main>
+		<h2 class="statusText">Waiting for players to join...</h2>
+		<ul class="playersList"></ul>
+		<div class="toolbar">
+			<button class="startGame hidden">Start game</button>
+			<button class="quitGame">Quit game</button>
+			<button class="toggleChat" title="`" onclick="Chat.toggleChatInput()">Chat</button>
+		   <a href="#" class="toggleBoard">board</a>
+		</div>
+		<div class="playerControls hidden">
+			<div class="cardContainer"></div>
+			<object class="powerDownButton" data="/images/power-down.svg" type="image/svg+xml"></object>
+		</div>
+		
+		<button class="submitCards hidden">Submit Cards</button>
+		<div id="gameContainer"></div>
+		<input class="chat" disabled />
+	</main>
+	<script src="/js/jquery-3.2.1.min.js"></script>
+	<script src="/js/phaser.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="/js/es6-promise.auto.min.js"></script><!-- Promise polyfill for older browsers -->
+	<script src="/js/main.js"></script>
+	<script src="/js/qrcode.min.js"></script>
+	<script>
+		// We may save a bit of battery life on phones when the board is hidden by calling phaserGame.raf.stop() to stop all 
+		// updating. The game currently depends on tweens running, so we'd need to either enable updates while it's playing robot
+		// movements, have tweens complete instantly (since you don't see them anyway), or have tweens complete after a setTimeout
+		// (may be useful to keep turns in sync so it doesn't ask you if you want to use an option card before other players see the
+		// event that triggered it). I have no idea if the battery savings are significant.
+		$('.toggleBoard').click(function () {
+			if ($('#gameContainer').is(':visible'))
+				$(this).addClass('off').removeClass('on');
+			else
+				$(this).addClass('on').removeClass('off');
 
-            $('#gameContainer').css('display', $(this).hasClass('on') ? 'block' : 'none');
-            return false;
-        });
+			$('#gameContainer').css('display', $(this).hasClass('on') ? 'block' : 'none');
+			return false;
+		});
 
-        $('.currentDomain').replaceWith(''+location);  // needed for IE. If earlier resources load slowly, location may pop-in in IE.
+		$('.currentDomain').replaceWith(''+location);  // needed for IE. If earlier resources load slowly, location may pop-in in IE.
 
-        startGame();
-    </script>
+		startGame();
+	</script>
 </body>
 </html>

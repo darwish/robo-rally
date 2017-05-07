@@ -1,35 +1,35 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-    <title>Robo Rally</title>
-    <meta name="description" content="Robo Rally">
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/style.css">
+	<title>Robo Rally</title>
+	<meta name="description" content="Robo Rally">
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <header>
-        <h1>RoboRally</h1>
-    </header>
-    <main>
-        <div class="toolbar">
-            <button class="createGame">Create new game</button>
-        </div>
-    </main>
-    <script src="/js/jquery-3.2.1.min.js"></script>
-    <script src="/js/phaser.min.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="/js/es6-promise.auto.min.js"></script>
-    <script src="/js/main.js"></script>
-    <script>
-        $('.createGame').click(function createNewGame() {
-            $.post('/create', function (gameId) {
-                var clientGame = new ClientGame(gameId);
-                clientGame.setSelfAsHost();
-                location = '/g/' + gameId;
-            });
-        });
-    </script>
+	<header>
+		<h1>RoboRally</h1>
+	</header>
+	<main>
+		<div class="toolbar">
+			<button class="createGame">Create new game</button>
+		</div>
+	</main>
+	<script src="/js/jquery-3.2.1.min.js"></script>
+	<script src="/js/phaser.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="/js/es6-promise.auto.min.js"></script>
+	<script src="/js/main.js"></script>
+	<script>
+		$('.createGame').click(function createNewGame() {
+			$.post('/create', function (gameId) {
+				var clientGame = new ClientGame(gameId);
+				clientGame.setSelfAsHost();
+				location = '/g/' + gameId;
+			});
+		});
+	</script>
 </body>
 </html>

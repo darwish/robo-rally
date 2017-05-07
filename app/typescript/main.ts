@@ -6,261 +6,261 @@
 var phaserGame: Phaser.Game, map: Phaser.Tilemap, wallLayer: Phaser.TilemapLayer, board: Board, laserProjectile: Phaser.Weapon;
 
 enum GameState {
-    Initializing,
-    WaitingForPlayerInput,
-    PlayingActions,
+	Initializing,
+	WaitingForPlayerInput,
+	PlayingActions,
 }
 
 class Main {
-    public gameState: GameState = GameState.Initializing;
-    public globalCardDeck: CardDeck<ProgramCard>;
-    public cards: ProgramCard[];
-    public selectedCards: ProgramCard[] = [];
-    public playerSubmittedCards: { [key: string]: ProgramCard[]; } = {};
+	public gameState: GameState = GameState.Initializing;
+	public globalCardDeck: CardDeck<ProgramCard>;
+	public cards: ProgramCard[];
+	public selectedCards: ProgramCard[] = [];
+	public playerSubmittedCards: { [key: string]: ProgramCard[]; } = {};
 
-    public preload() {
-        phaserGame.load.baseURL = '/';
-        //phaserGame.load.crossOrigin = 'anonymous';
+	public preload() {
+		phaserGame.load.baseURL = '/';
+		//phaserGame.load.crossOrigin = 'anonymous';
 
-        phaserGame.load.image('laser-emitter', 'images/Laser%20Small.png');
-        phaserGame.load.image('laser-beam', 'images/Laser%20Segment.png');
-        phaserGame.load.image('tileset', 'images/Spritesheet%20Small.png');
-        phaserGame.load.image('player-card', 'images/player-card.png');
-        phaserGame.load.image('laser-projectile', 'images/laser-projectile.png');
-        phaserGame.load.spritesheet('robots', 'images/robots.png', 75, 75);
-        phaserGame.load.tilemap('tilemap', 'maps/Cross.json', null, Phaser.Tilemap.TILED_JSON);
+		phaserGame.load.image('laser-emitter', 'images/Laser%20Small.png');
+		phaserGame.load.image('laser-beam', 'images/Laser%20Segment.png');
+		phaserGame.load.image('tileset', 'images/Spritesheet%20Small.png');
+		phaserGame.load.image('player-card', 'images/player-card.png');
+		phaserGame.load.image('laser-projectile', 'images/laser-projectile.png');
+		phaserGame.load.spritesheet('robots', 'images/robots.png', 75, 75);
+		phaserGame.load.tilemap('tilemap', 'maps/Cross.json', null, Phaser.Tilemap.TILED_JSON);
 
-        for (let i = 1; i <= 5; i++)
-            phaserGame.load.audio(`beepbeep${i}`, `sounds/beepbeep${i}.mp3`);
-    }
+		for (let i = 1; i <= 5; i++)
+			phaserGame.load.audio(`beepbeep${i}`, `sounds/beepbeep${i}.mp3`);
+	}
 
-    public create() {
-        map = phaserGame.add.tilemap('tilemap');
-        map.addTilesetImage('RoboRallyOriginal', 'tileset');
-        map.createLayer('Floor Layer').resizeWorld();
-        wallLayer = map.createLayer('Wall Layer');
-        laserProjectile = phaserGame.add.weapon(-1, 'laser-projectile');
-        laserProjectile.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
-        laserProjectile.bulletSpeed = 400;
-        laserProjectile.bulletAngleOffset = 90;
-        laserProjectile.fireRate = 0;
+	public create() {
+		map = phaserGame.add.tilemap('tilemap');
+		map.addTilesetImage('RoboRallyOriginal', 'tileset');
+		map.createLayer('Floor Layer').resizeWorld();
+		wallLayer = map.createLayer('Wall Layer');
+		laserProjectile = phaserGame.add.weapon(-1, 'laser-projectile');
+		laserProjectile.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
+		laserProjectile.bulletSpeed = 400;
+		laserProjectile.bulletAngleOffset = 90;
+		laserProjectile.fireRate = 0;
 
-        board = new Board(map);
-        initRoboRally();
-    }
+		board = new Board(map);
+		initRoboRally();
+	}
 
-    public render() {
-        if (board) {
-            for (let laser of board.lasers)
-                laser.render();
-        }
-    }
+	public render() {
+		if (board) {
+			for (let laser of board.lasers)
+				laser.render();
+		}
+	}
 
-    public waitForPlayers() {
-        this.showWaitingPlayers(clientGame);
+	public waitForPlayers() {
+		this.showWaitingPlayers(clientGame);
 
-        if (clientGame.isHost()) {
-            socket.on('joined', (clientId) => {
-                clientGame.addPlayer(clientId);
+		if (clientGame.isHost()) {
+			socket.on('joined', (clientId) => {
+				clientGame.addPlayer(clientId);
 
-                if (clientGame.isHost()) {
-                    socket.emit('broadcastPlayers', clientGame.getPlayers());
-                }
+				if (clientGame.isHost()) {
+					socket.emit('broadcastPlayers', clientGame.getPlayers());
+				}
 
-                this.showWaitingPlayers(clientGame);
-            });
-        } else {
-            this.waitForCards();
+				this.showWaitingPlayers(clientGame);
+			});
+		} else {
+			this.waitForCards();
 
-            socket.on('broadcastPlayers', (players) => {
-                clientGame.setPlayers(players);
-                this.showWaitingPlayers(clientGame);
-            });
-        }
-    }
+			socket.on('broadcastPlayers', (players) => {
+				clientGame.setPlayers(players);
+				this.showWaitingPlayers(clientGame);
+			});
+		}
+	}
 
-    public showWaitingPlayers(clientGame: ClientGame) {
-        $('.playersList').empty();
-        clientGame.getPlayers().forEach((player) => {
-            var playerItem = $('<li class="playerItem">' + player.friendlyName + '</li>');
-            playerItem.data('player', player);
-            $('.playersList').append(playerItem);
-        });
-    }
+	public showWaitingPlayers(clientGame: ClientGame) {
+		$('.playersList').empty();
+		clientGame.getPlayers().forEach((player) => {
+			var playerItem = $('<li class="playerItem">' + player.friendlyName + '</li>');
+			playerItem.data('player', player);
+			$('.playersList').append(playerItem);
+		});
+	}
 
-    public startGame() {
-        $('.startGame').addClass("hidden");
-        $('.quitGame').removeClass("hidden");
+	public startGame() {
+		$('.startGame').addClass("hidden");
+		$('.quitGame').removeClass("hidden");
 
-        socket.off('joined');
-        socket.off('broadcastPlayers');
+		socket.off('joined');
+		socket.off('broadcastPlayers');
 
-        this.startNewTurn();
-    }
+		this.startNewTurn();
+	}
 
-    private startNewTurn() {
-        this.gameState = GameState.WaitingForPlayerInput;
+	private startNewTurn() {
+		this.gameState = GameState.WaitingForPlayerInput;
 
-        var players = clientGame.getPlayers();
-        var handSizes = players.map(() => 9);
-        var hands = this.dealCards(handSizes);
+		var players = clientGame.getPlayers();
+		var handSizes = players.map(() => 9);
+		var hands = this.dealCards(handSizes);
 
-        var handData = {};
-        for (let i = 0; i < players.length; i++) {
-            handData[players[i].id] = hands[i];
-        }
-        socket.emit('dealtCards', handData);
+		var handData = {};
+		for (let i = 0; i < players.length; i++) {
+			handData[players[i].id] = hands[i];
+		}
+		socket.emit('dealtCards', handData);
 
-        this.showCards(hands[0]);
-        this.waitForAllSubmissions();
-    }
+		this.showCards(hands[0]);
+		this.waitForAllSubmissions();
+	}
 
-    public quitGame() {
-        window.location.href = "/";
-    }
+	public quitGame() {
+		window.location.href = "/";
+	}
 
-    public waitForCards() {
-        socket.on('dealtCards', (handData) => {
-            socket.off('dealtCards');
+	public waitForCards() {
+		socket.on('dealtCards', (handData) => {
+			socket.off('dealtCards');
 
-            var cardData = handData[clientGame.clientId.id];
-            this.cards = cardData.map((c) => new ProgramCard(c.type, c.distance, c.priority));
-            this.showCards(this.cards);
+			var cardData = handData[clientGame.clientId.id];
+			this.cards = cardData.map((c) => new ProgramCard(c.type, c.distance, c.priority));
+			this.showCards(this.cards);
 
-            this.waitForAllSubmissions();
-        });
-    }
+			this.waitForAllSubmissions();
+		});
+	}
 
-    public waitForAllSubmissions() {
+	public waitForAllSubmissions() {
 
-        socket.on('submitTurn', (submittedTurn) => {
-            this.playerSubmittedCards[submittedTurn.playerId] = submittedTurn.cards.map((c) => new ProgramCard(c.type, c.distance, c.priority));
+		socket.on('submitTurn', (submittedTurn) => {
+			this.playerSubmittedCards[submittedTurn.playerId] = submittedTurn.cards.map((c) => new ProgramCard(c.type, c.distance, c.priority));
 
-            $('.playersList .playerItem').filter(function () { return $(this).data('player').id == submittedTurn.playerId; }).addClass('submitted');
+			$('.playersList .playerItem').filter(function () { return $(this).data('player').id == submittedTurn.playerId; }).addClass('submitted');
 
-            if (this.allPlayersSubmitted)
-                this.runNextTurnAsync();
-        });
-    }
+			if (this.allPlayersSubmitted)
+				this.runNextTurnAsync();
+		});
+	}
 
-    public showCards(cards: ProgramCard[]) {
-        $('.playerControls').removeClass('hidden');
-        $('.statusText').html('Choose Your Cards');
+	public showCards(cards: ProgramCard[]) {
+		$('.playerControls').removeClass('hidden');
+		$('.statusText').html('Choose Your Cards');
 
-        $('.cardContainer').empty();
-        cards.forEach((card) => {
-            var cardChoice = $(`<li class="cardChoice" title="${card.toString()}">${card.toHtml()}<span class="phaseOrder"></span></li>`);
-            cardChoice.data('card', card);
-            $('.cardContainer').append(cardChoice);
-        });
+		$('.cardContainer').empty();
+		cards.forEach((card) => {
+			var cardChoice = $(`<li class="cardChoice" title="${card.toString()}">${card.toHtml()}<span class="phaseOrder"></span></li>`);
+			cardChoice.data('card', card);
+			$('.cardContainer').append(cardChoice);
+		});
 
-        $('.cardContainer').append(`<a href=# class="collapse" onclick="$('.cardContainer').toggleClass('collapsed')"></a>`);
-    }
+		$('.cardContainer').append(`<a href=# class="collapse" onclick="$('.cardContainer').toggleClass('collapsed')"></a>`);
+	}
 
-    public dealCards(handSizes: number[]) {
-        // return all cards to the deck (by simply recreating the deck in its initial state)
-        this.globalCardDeck = CardDeck.newProgramDeck();    
-        return this.globalCardDeck.deal(handSizes);
-    }
+	public dealCards(handSizes: number[]) {
+		// return all cards to the deck (by simply recreating the deck in its initial state)
+		this.globalCardDeck = CardDeck.newProgramDeck();
+		return this.globalCardDeck.deal(handSizes);
+	}
 
-    public chooseCard(element) {
-        var card = $(element).data('card');
+	public chooseCard(element) {
+		var card = $(element).data('card');
 
-        if ($(element).hasClass('selected')) {
-            this.selectedCards.splice(this.selectedCards.indexOf(card), 1);
-            $(element).removeClass('selected');
-            $(element).find('.phaseOrder').text('');
-            $('.submitCards').addClass('hidden');
-        } else {
-            if (this.selectedCards.length < 5) {
-                this.selectedCards.push(card);
-                $(element).addClass('selected');
-                $(element).find('.phaseOrder').text(this.selectedCards.length);
+		if ($(element).hasClass('selected')) {
+			this.selectedCards.splice(this.selectedCards.indexOf(card), 1);
+			$(element).removeClass('selected');
+			$(element).find('.phaseOrder').text('');
+			$('.submitCards').addClass('hidden');
+		} else {
+			if (this.selectedCards.length < 5) {
+				this.selectedCards.push(card);
+				$(element).addClass('selected');
+				$(element).find('.phaseOrder').text(this.selectedCards.length);
 
-                if (this.selectedCards.length == 5) {
-                    $('.submitCards').removeClass('hidden');
-                } else {
-                    $('.submitCards').addClass('hidden');
-                }
-            }
-        }
+				if (this.selectedCards.length == 5) {
+					$('.submitCards').removeClass('hidden');
+				} else {
+					$('.submitCards').addClass('hidden');
+				}
+			}
+		}
 
-        // update phase order
-        $('.cardContainer .cardChoice').each((i, el) => {
-            let index = this.selectedCards.indexOf($(el).data('card'));
-            return $(el).find('.phaseOrder').text(index < 0 ? '' : index + 1);
-        });
-        
-    }
+		// update phase order
+		$('.cardContainer .cardChoice').each((i, el) => {
+			let index = this.selectedCards.indexOf($(el).data('card'));
+			return $(el).find('.phaseOrder').text(index < 0 ? '' : index + 1);
+		});
 
-    public submitSelectedCards() {
-        if (this.selectedCards.length != 5) {
-            alert("You must choose 5 cards to submit. You've only chosen " + this.selectedCards.length + ".");
-            return;
-        }
+	}
 
-        this.playerSubmittedCards[clientGame.clientId.id] = this.selectedCards;
-        $('.playersList .playerItem').filter(function () { return $(this).data('player').id == clientGame.clientId.id; }).addClass('submitted');
+	public submitSelectedCards() {
+		if (this.selectedCards.length != 5) {
+			alert("You must choose 5 cards to submit. You've only chosen " + this.selectedCards.length + ".");
+			return;
+		}
 
-        socket.emit('submitTurn', {
-            playerId: clientGame.clientId.id,
-            cards: this.selectedCards
-        });
+		this.playerSubmittedCards[clientGame.clientId.id] = this.selectedCards;
+		$('.playersList .playerItem').filter(function () { return $(this).data('player').id == clientGame.clientId.id; }).addClass('submitted');
 
-        clientGame.getRobot().registeredProgramCards = this.selectedCards;
-        this.selectedCards = [];
+		socket.emit('submitTurn', {
+			playerId: clientGame.clientId.id,
+			cards: this.selectedCards
+		});
 
-        if (this.allPlayersSubmitted())
-            this.runNextTurnAsync();
-    }
+		clientGame.getRobot().registeredProgramCards = this.selectedCards;
+		this.selectedCards = [];
 
-    public allPlayersSubmitted() {
-        return Object.keys(this.playerSubmittedCards).length == clientGame.getPlayers().length;
-    }
+		if (this.allPlayersSubmitted())
+			this.runNextTurnAsync();
+	}
 
-    public async runNextTurnAsync() {
-        this.gameState = GameState.PlayingActions;
+	public allPlayersSubmitted() {
+		return Object.keys(this.playerSubmittedCards).length == clientGame.getPlayers().length;
+	}
 
-        var turns:RobotTurn[] = [];
-        for (let clientId in this.playerSubmittedCards) {
-            var robot = Board.Instance.robots.filter(r => r.playerID == clientId)[0];
-            turns.push(new RobotTurn(robot, this.playerSubmittedCards[clientId]));
-        }
+	public async runNextTurnAsync() {
+		this.gameState = GameState.PlayingActions;
 
-        this.startNewTurn();
-        await Board.Instance.runTurnAsync(turns);
-    }
+		var turns: RobotTurn[] = [];
+		for (let clientId in this.playerSubmittedCards) {
+			var robot = Board.Instance.robots.filter(r => r.playerID == clientId)[0];
+			turns.push(new RobotTurn(robot, this.playerSubmittedCards[clientId]));
+		}
+
+		this.startNewTurn();
+		await Board.Instance.runTurnAsync(turns);
+	}
 }
 
 var main: Main;
 function startGame() {
-    main = new Main();
-    phaserGame = new Phaser.Game(900, 900, Phaser.CANVAS, $('#gameContainer')[0], { preload: () => main.preload(), create: () => main.create(), render: main.render });;
+	main = new Main();
+	phaserGame = new Phaser.Game(900, 900, Phaser.CANVAS, $('#gameContainer')[0], { preload: () => main.preload(), create: () => main.create(), render: main.render });;
 }
 
 function initRoboRally() {
-    var gameId = location.pathname.match(/^\/g\/(\w+)/)[1];
+	var gameId = location.pathname.match(/^\/g\/(\w+)/)[1];
 
-    clientGame = new ClientGame(gameId);
-    socket = io();
+	clientGame = new ClientGame(gameId);
+	socket = io();
 
-    $('.gameInfo').show();
-    new QRCode($(".qrcode")[0], { text: "https://robo-rally.glitch.me/g/" + gameId, width: 66, height: 66 });
+	$('.gameInfo').show();
+	new QRCode($(".qrcode")[0], { text: "https://robo-rally.glitch.me/g/" + gameId, width: 66, height: 66 });
 
-    if (!clientGame.isHost()) {
-        clientGame.loadOrJoin();
-    }
-    if (clientGame.isHost()) {
-        $('.startGame').removeClass('hidden').click(() => main.startGame());
-        clientGame.addPlayer(clientGame.clientId);
-    }
-    main.waitForPlayers();
+	if (!clientGame.isHost()) {
+		clientGame.loadOrJoin();
+	}
+	if (clientGame.isHost()) {
+		$('.startGame').removeClass('hidden').click(() => main.startGame());
+		clientGame.addPlayer(clientGame.clientId);
+	}
+	main.waitForPlayers();
 
-    $('.startGame').click(() => main.startGame());
-    $('.quitGame').click(() => main.quitGame());
-    $('.cardContainer').on('click', '.cardChoice', function () { main.chooseCard(this); });
-    $('.submitCards').click(() => main.submitSelectedCards());
+	$('.startGame').click(() => main.startGame());
+	$('.quitGame').click(() => main.quitGame());
+	$('.cardContainer').on('click', '.cardChoice', function () { main.chooseCard(this); });
+	$('.submitCards').click(() => main.submitSelectedCards());
 
-    Chat.initialize('.chat');
+	Chat.initialize('.chat');
 }
 
