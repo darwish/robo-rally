@@ -119,6 +119,9 @@
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="app\typescript\flag.ts" />
+    <TypeScriptCompile Include="app\typescript\game.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="app\typescript\laser.ts" />
     <TypeScriptCompile Include="app\typescript\main.ts" />
     <TypeScriptCompile Include="app\typescript\name-generator.ts" />

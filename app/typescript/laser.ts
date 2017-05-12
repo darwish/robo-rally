@@ -16,7 +16,7 @@
 		let graphics = phaserGame.add.graphics(0, 0);
 		graphics.lineStyle(2, 0x660000);
 
-		let offsets = [-25, 0, 25];
+		let offsets = [0, -25, 25];
 		for (let i = 0; i < damagePower; i++) {
 			let p = new Point(0, offsets[i]);
 			p.rotate(0, 0, rot);

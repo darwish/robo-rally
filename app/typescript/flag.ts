@@ -6,11 +6,11 @@
 	}
 
 	public touchedBy(robot: Robot) {
-		if (this.order = robot.lastFlagOrder + 1) {
-			robot.lastFlagOrder = this.order;
+		if (this.order == robot.lastFlagTouched + 1) {
+			robot.lastFlagTouched = this.order;
 		}
 
-		if (robot.lastFlagOrder >= Flag.highestOrder) {
+		if (robot.lastFlagTouched >= Flag.highestOrder) {
 			// TODO: This robot wins; game over
 		}
 	}

@@ -16,7 +16,7 @@ var games = {};
 
 // http://expressjs.com/en/starter/static-files.html
 app.use(express.static(__dirname + '/public'));
-if (env == 'dev')
+if (env === 'dev')
 	app.use('/typescript', express.static(__dirname + '/typescript'));
 
 // http://expressjs.com/en/starter/basic-routing.html
@@ -31,7 +31,7 @@ app.post("/create", function (request, response) {
 });
 
 app.get("/g/:id", function (request, response) {
-	if (!(request.params.id in games)) {
+	if (!(request.params.id.toUpperCase() in games)) {
 		response.send(404, "That game does not exist.");
 	}
 
@@ -72,16 +72,16 @@ io.on('connection', function (socket) {
 	socket.on('join', function (data) {
 		socket.join(data.gameId);
 		socket.gameId = data.gameId;
-		socket.clientId = data.clientId;
+		socket.player = data.player;
 
-		socket.to(data.gameId).emit('joined', data.clientId);
+		socket.to(data.gameId).emit('joined', data.player);
 	});
 
 	// The server should just be a dumb relay. Forward messages to other sockets in the same game.
 	var events = ['broadcastPlayers', 'gameStart', 'dealtCards', 'submitTurn', 'powerDown', 'useOptionCard', 'gameSettings', 'gameState', 'chat'];
 	for (let i = 0; i < events.length; i++) {
 		socket.on(events[i], function (data) {
-			data.sender = socket.clientId;
+			data.sender = socket.player.id;
 			socket.to(socket.gameId).emit(events[i], data);
 		});
 	}

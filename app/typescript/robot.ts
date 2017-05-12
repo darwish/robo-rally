@@ -1,4 +1,5 @@
 class Robot {
+	public static readonly NumSprites = 6;		// Can use phaserGame.cache.getFrameCount('robots') after images have been loaded. Unfortunately, we need this value before then.
 
 	public respawnPosition: BoardPosition;
 	public isPoweredDown: boolean;
@@ -6,26 +7,26 @@ class Robot {
 	public lockedRegisters: boolean[];
 	public availableProgramCards: ProgramCard[];
 	public registeredProgramCards: ProgramCard[];
-	public lastFlagOrder: number;
+	public lastFlagTouched: number;
 	public sprite: Phaser.Sprite;
 
 	readonly maxHealth = 10;
 
-	constructor(public playerID: string, private _position: BoardPosition, private _direction: Direction, public lives: number, spriteIndex: number = Robot.pickRandomSprite(), health = 10) {
+	constructor(public playerID: string, private _position: BoardPosition, private _direction: Direction, public lives: number, spriteIndex: number = Robot.pickRandomSprite(), health?: number) {
 
 		this.isPoweredDown = false;
 		this.optionCards = [];
 		this.lockedRegisters = [false, false, false, false, false];
 		this.availableProgramCards = [];
 		this.registeredProgramCards = [];
-		this.lastFlagOrder = 0;
+		this.lastFlagTouched = 0;
 
 		let pixelPos = _position.toCenterPixelPosition();
 		this.sprite = phaserGame.add.sprite(pixelPos.x, pixelPos.y, 'robots');
 		this.sprite.angle = _direction.toDegrees() + 180;
-		this.sprite.frame = spriteIndex;
+		this.sprite.frame = Math.floor(Math.abs(spriteIndex)) % phaserGame.cache.getFrameCount('robots');	// Convert invalid indexes to the proper range
 		this.sprite.maxHealth = this.maxHealth;
-		this.sprite.health = health;
+		this.sprite.health = health || this.maxHealth;
 		this.sprite.anchor.set(0.5);
 	}
 
@@ -53,8 +54,8 @@ class Robot {
 		return this._direction;
 	}
 
-	private static pickRandomSprite() {
-		return Math.floor(Math.random() * phaserGame.cache.getFrameCount('robots'));
+	public static pickRandomSprite() {
+		return Math.floor(Math.random() * Robot.NumSprites);
 	}
 
 	get health() {
@@ -105,5 +106,28 @@ class Robot {
 	/** Returns the robot we can shoot if any, or null. */
 	public getTarget() {
 		return Board.Instance.getTarget(this);
+	}
+
+	public serialize() {
+		let properties = $.extend({}, this);
+		properties.sprite = this.sprite.frame;
+		properties.health = this.sprite.health;
+		
+		return JSON.stringify(properties);
+	}
+
+	public static deserialize(serialized: string) {
+		let obj = JSON.parse(serialized);
+
+		let robot = new Robot(obj.playerID, obj._position, obj._direction, obj.lives, obj.sprite, obj.health);
+		robot.respawnPosition = obj.respawnPosition;
+		robot.isPoweredDown = obj.isPoweredDown;
+		robot.optionCards = obj.optionCards;
+		robot.lockedRegisters = obj.lockedRegisters;
+		robot.availableProgramCards = obj.availableProgramCards;
+		robot.registeredProgramCards = obj.registeredProgramCards;
+		robot.lastFlagTouched = obj.lastFlagTouched;
+
+		return robot;
 	}
 }

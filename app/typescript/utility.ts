@@ -5,6 +5,13 @@ declare var socket: SocketIOClient.Socket;
 const PiOver2 = Math.PI / 2;
 import Point = Phaser.Point;
 
+/** Promise version of setTimeout. Waits the specified number of milliseconds. Compatible with async/await. */
+function delay(milliseconds: number) {
+	return new Promise<void>(resolve => setTimeout(resolve, milliseconds));
+}
+
+//////////// Extensions to Math ////////////
+
 interface Math {
 	/** Returns -1 if x < 0, 1 if x > 0 and 0 if x == 0 */
 	sign(x: number): number
@@ -14,10 +21,8 @@ Math.sign = function (x: number) {
 	return x == 0 ? 0 : x < 0 ? -1 : 1;
 }
 
-/** Promise version of setTimeout. Waits the specified number of milliseconds. Compatible with async/await. */
-function delay(milliseconds: number) {
-	return new Promise<void>(resolve => setTimeout(resolve, milliseconds));
-}
+
+//////////// Extensions to String ////////////
 
 interface String {
 	toSentenceCase(): string;
@@ -53,4 +58,46 @@ String.prototype.hash = function () {
 		hash += this.charCodeAt(i) * (i + 1);
 
 	return hash;
+}
+
+//////////// Extensions to Array ////////////
+
+interface Array<T> {
+
+	/** Creates and returns a new array without the excluded items. Does not modify the original array. Uses strict equality. */
+	except(excludedItems: Array<T>): Array<T>;
+
+	/** Removes the first occurance of an item from the array. Returns true if an item was removed and false it the item was not found. Uses strict equality. */
+	remove(item: T): boolean;
+
+	/** Removes the all occurances of an item from the array. Returns the number of items removed. Uses strict equality. */
+	removeAll(item: T): number;
+
+	/** Return true if the array contains the item.  Uses strict equality. */
+	contains(item: T): boolean;
+}
+
+Array.prototype.contains = function(item) {
+	return this.indexOf(item) >= 0;
+}
+
+// Not efficient for large arrays. Could use a hash table if required, but I doubt RoboRally will ever use this on large arrays (excludedItems.length > 100).
+Array.prototype.except = function(excludedItems) {
+	return this.filter(x => !excludedItems.contains(x));
+}
+
+Array.prototype.remove = function(item) {
+	return this.splice(this.indexOf(item), 1).length > 0;
+}
+
+Array.prototype.removeAll = function(item) {
+	let itemsRemoved = 0;
+	for (var i = this.length - 1; i >= 0; i--) {
+		if (this[i] === item) {
+			this.splice(i, 1);
+			itemsRemoved++;
+		}
+	}
+
+	return itemsRemoved;
 }

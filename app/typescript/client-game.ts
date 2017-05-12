@@ -1,47 +1,49 @@
-﻿class PlayerID {
-	constructor(public id: string, public friendlyName: string) { }
+﻿class Player {
+	constructor();
+	constructor(id: string, friendlyName: string, robotSprite: number);
+	constructor(public id?: string, public friendlyName?: string, public robotSprite?: number) { }
 }
 
 class ClientGame {
-	public clientId: PlayerID;
-	private gameData: { gameId: string, hostId?: PlayerID, playerIds: PlayerID[] };
+	public player: Player;
+	private gameData: { gameId: string, host?: Player, players: Player[] };
 
 	constructor(public gameId: string) {
 		this.getOrCreateClientId();
 		this.gameData = {
 			gameId: gameId,
-			hostId: null,
-			playerIds: []
+			host: null,
+			players: []
 		};
 	}
 
 	public setSelfAsHost() {
-		this.gameData.hostId = this.clientId;
+		this.gameData.host = this.player;
 		this.saveGame();
 	}
 
 	public isHost() {
-		return this.gameData.hostId && this.gameData.hostId.id == this.clientId.id;
+		return this.gameData.host && this.gameData.host.id == this.player.id;
 	}
 
-	public addPlayer(playerId: PlayerID) {
-		if (!this.gameData.playerIds.some(x => x.id == playerId.id)) {
-			this.gameData.playerIds.push(playerId);
+	public addPlayer(player: Player) {
+		if (!this.gameData.players.some(x => x.id == player.id)) {
+			this.gameData.players.push(player);
 			this.saveGame();
-			Board.Instance.onPlayerJoined(playerId);
+			Board.Instance.onPlayerJoined(player);
 		}
 	}
 
-	public getPlayers(): PlayerID[] {
-		return this.gameData.playerIds;
+	public getPlayers(): Player[] {
+		return this.gameData.players;
 	}
 
-	public setPlayers(players: PlayerID[]) {
-		this.gameData.playerIds = players;
+	public setPlayers(players: Player[]) {
+		this.gameData.players = players;
 		this.saveGame();
 		Board.Instance.clearRobots();
-		for (let playerId of players) {
-			Board.Instance.onPlayerJoined(playerId);
+		for (let player of players) {
+			Board.Instance.onPlayerJoined(player);
 		}
 	}
 
@@ -61,12 +63,12 @@ class ClientGame {
 		}
 
 		this.gameData = JSON.parse(localStorage['Game_' + this.gameId]);
-		socket.emit('join', { gameId: this.gameId, clientId: this.clientId });
+		socket.emit('join', { gameId: this.gameId, player: this.player });
 		// TODO: load state
 		// Host loads from local storage, everyone else gets the broadcast when they join
 		if (this.isHost()) {
-			for (let playerId of this.gameData.playerIds) {
-				Board.Instance.onPlayerJoined(playerId);
+			for (let player of this.gameData.players) {
+				Board.Instance.onPlayerJoined(player);
 			}
 			socket.emit('broadcastPlayers', this.getPlayers());
 		}
@@ -75,22 +77,24 @@ class ClientGame {
 	}
 
 	public joinGame() {
-		socket.emit('join', { gameId: this.gameId, clientId: this.clientId });
+		socket.emit('join', { gameId: this.gameId, player: this.player });
 	}
 
 	private getOrCreateClientId() {
-		this.clientId = new PlayerID(null, null);
+		this.player = new Player();
 
 		if ('clientId' in localStorage) {
-			this.clientId.id = localStorage['clientId'];
-			this.clientId.friendlyName = localStorage['friendlyName'];
+			this.player.id = localStorage['clientId'];
+			this.player.friendlyName = localStorage['friendlyName'];
+			this.player.robotSprite = localStorage['robotSprite'];
 		} else {
-			this.clientId.id = localStorage['clientId'] = Guid.newGuid();
-			this.clientId.friendlyName = localStorage['friendlyName'] = generateName();
+			this.player.id = localStorage['clientId'] = Guid.newGuid();
+			this.player.friendlyName = localStorage['friendlyName'] = generateName();
+			this.player.robotSprite = localStorage['robotSprite'] = Robot.pickRandomSprite();
 		}
 	}
 
-	public getRobot(playerID = this.clientId) {
+	public getRobot(playerID = this.player) {
 		return Board.Instance.robots.filter(x => x.playerID == playerID.id)[0];
 	}
 }

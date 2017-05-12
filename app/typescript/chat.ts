@@ -3,7 +3,7 @@
 	private static sounds: Phaser.Sound[] = [];
 	static chatInput: HTMLInputElement;
 
-	static async say(message: string, player = clientGame.clientId, speakRobot = true) {
+	static async say(message: string, player = clientGame.player, speakRobot = true) {
 		if (!Chat.runs[player.id])
 			Chat.runs[player.id] = 0;
 
@@ -44,7 +44,7 @@
 	}
 
 	static getSound(message: string) {
-		return this.sounds[message.hash() % this.sounds.length];
+		return this.sounds[message.trim().split(/\s+/)[0].hash() % this.sounds.length];	// Choose sound based on the hash of the first word.
 	}
 
 	static initialize(chatBox: JQuery | string | Element) {

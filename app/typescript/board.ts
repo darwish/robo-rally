@@ -45,8 +45,8 @@ class Board {
 		}
 	}
 
-	public onPlayerJoined(playerID: PlayerID) {
-		var newRobot = new Robot(playerID.id, new BoardPosition(this.robots.length, 0), Direction.S, 3); // TODO: can't start all robots at the same place
+	public onPlayerJoined(player: Player) {
+		var newRobot = new Robot(player.id, new BoardPosition(this.robots.length, 0), Direction.S, 3, player.robotSprite); // TODO: can't start all robots at the same place
 		this.robots.push(newRobot);
 	}
 
@@ -85,14 +85,18 @@ class Board {
 		if (distance < 0)
 			direction = direction.opposite();
 
+		let movements: Promise<void>[] = [];
 		while (distance !== 0) {
 			distance -= Math.sign(distance);
 			try {
-				await this.moveRobotOneTile(robot, direction);
+				movements.push(this.moveRobotOneTile(robot, direction));
 			} catch (e) {
 				// continue attempting to move, so we can animate each attempt
 			}
 		}
+
+		// apply all movements before awaiting, so that it performs a move 3 in one smooth movement instead of 3 individual steps
+		await Promise.all(movements);	
 	}
 
 	public getTile(position: Point) {
