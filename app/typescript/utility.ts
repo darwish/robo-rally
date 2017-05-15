@@ -25,8 +25,16 @@ Math.sign = function (x: number) {
 //////////// Extensions to String ////////////
 
 interface String {
+	capitalize(): string;
 	toSentenceCase(): string;
+
+	/** Adds a space before each capital letter other than the first character of the string. */
+	addSpaces(): string;
 	hash(): number;
+}
+
+String.prototype.capitalize = function () {
+	return this.chatAt(0).toUpperCase() + this.substr(1);
 }
 
 String.prototype.toSentenceCase = function () {
@@ -52,6 +60,10 @@ String.prototype.toSentenceCase = function () {
 	return result;
 }
 
+String.prototype.addSpaces = function () {
+	return this.split(/(?=[A-Z])/g).join(' ');
+}
+
 String.prototype.hash = function () {
 	let hash = 0;
 	for (let i = 0; i < this.length; i++)
@@ -59,7 +71,6 @@ String.prototype.hash = function () {
 
 	return hash;
 }
-
 //////////// Extensions to Array ////////////
 
 interface Array<T> {

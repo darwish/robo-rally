@@ -13,7 +13,7 @@
 	<header>
 		<div class="gameInfo hidden">
 			<p>
-				Go to <a href="#" onclick="return false;"><script class="currentDomain">document.currentScript.replaceWith(''+location);</script></a> to join this game.
+				Go to <a href="#" onclick="return false;"><script class="currentDomain">document.currentScript.parentElement.href = location; document.currentScript.replaceWith(''+location);</script></a> to join this game.
 				<span class="qrcode"></span>
 			</p>
 		</div>
@@ -58,7 +58,11 @@
 			return false;
 		});
 
-		$('.currentDomain').replaceWith(''+location);  // needed for IE. If earlier resources load slowly, location may pop-in in IE.
+		// needed for IE. If earlier resources load slowly, location may pop-in in IE.
+		if ($('.currentDomain').length) {
+			$('.currentDomain').parent()[0].href = location;
+			$('.currentDomain').replaceWith('' + location);
+		}
 
 		startGame();
 	</script>

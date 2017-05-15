@@ -28,7 +28,7 @@ class GameSettings {
 	/** Number of turns before a destroyed robot respawns. Used in Toggle Boggle. */
 	readonly respawnTime: number = 0;
 
-	/** In CTF games, robot must capture the other team's flag and bring it back to their home board. */
+	/** In CTF games, robots must capture the other team's flag and bring it back to their home board. */
 	readonly captureTheFlag: boolean = false;
 
 	/** Whenever a robot touches a flag, its team gains control of that flag. First team to control all flags simultaneously wins. */
@@ -46,6 +46,19 @@ class GameSettings {
 
 	constructor(settings?: Partial<GameSettings>) {
 		$.extend(this, settings);
+	}
+
+	/** Returns all the preset game types. Object keys are the names and values are the GameSettings objects. */
+	static getPresets() {
+		// Note: if we want the presets in a particular order, we'd need to return an ordered array, or add an 'order' property to the values.
+		let keys = Object.keys(GameSettings).filter(x => GameSettings[x] instanceof GameSettings);
+		let map: { [name: string]: GameSettings } = {};
+
+		for (let key of keys) {
+			map[key.addSpaces()] = GameSettings[key];
+		}
+
+		return map;
 	}
 
 	static readonly Default = new GameSettings();

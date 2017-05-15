@@ -254,3 +254,47 @@ input.chat:focus {
 .powerDownButton path {
 	cursor: pointer;
 }
+
+
+.gameSettings li label {
+	display: inline-block;
+	width: 270px;
+	text-align: right;
+	margin-right: 10px;
+	font-weight: bold;
+	font-size: smaller;
+}
+
+.gameSettings input {
+	display: inline-block;
+	margin-left: 0;
+}
+
+.gameSettings select {
+	border-radius: 4px;
+	padding: 3px;
+}
+
+.gameSettings input[type=number] {
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	width: 50px;
+	padding: 4px;
+}
+
+.gameSettings li {
+	display: block;
+	margin: 8px 0;
+}
+
+.gameSettings ul {
+	list-style-type: none;
+	padding: 5px 0px;
+	border: 1px solid lightgray;
+	border-radius: 4px;
+	max-width: 370px;
+}
+
+.gameSettings li > * {
+	vertical-align: middle;
+}

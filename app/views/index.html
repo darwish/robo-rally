@@ -13,6 +13,75 @@
 		<h1>RoboRally</h1>
 	</header>
 	<main>
+		<div class="gameSettings">
+			<h4>Game Settings</h4>
+			<div>
+				<label for="gamePresets" title="Preset game rules">Presets: </label>
+				<select id="gamePresets"><option>Custom...</option></select>
+			</div>
+			<ul>
+				<li title="The maximum number of players allowed in this game.">
+					<label for="maxPlayers">Max players: </label>
+					<input type="number" id="maxPlayers" value="8" min="0" />
+				</li>
+				<li title="Divide players into this many even teams. If this value equals max players, everyone is on their own team">
+					<label for="teamCount">Number of teams: </label>
+					<input type="number" id="teamCount" value="8" min="1" />
+				</li>
+				<li title="Players start the game with this many option cards.">
+					<label for="startingOptionCards">Starting option cards: </label>
+					<input type="number" id="startingOptionCards" value="0" min="0" />
+				</li>
+				<li title="If this value is greater than the number of starting option cards, players may choose their starting option cards from a random draw of this many cards.">
+					<label for="startingOptionCardChoices">Let players choose among this many option cards: </label>
+					<input type="number" id="startingOptionCardChoices" value="0" min="0" />
+				</li>
+				<li title="Robots start the game with this amount of damage.">
+					<label for="startingDamage">Starting damage: </label>
+					<input type="number" id="startingDamage" value="0" min="0" />
+				</li>
+				<li title="Damage from robot lasers will be multiplied by this amount, (and then rounded if necessary).">
+					<label for="robotLaserDamageMultiplier">Robot laser damage multiplier: </label>
+					<input type="number" id="robotLaserDamageMultiplier" value="1" min="0" />
+				</li>
+				<li title="After dying, robots will have to wait this many rounds before respawning.">
+					<label for="respawnTime">Rounds until respawn: </label>
+					<input type="number" id="respawnTime" value="0" min="0" />
+				</li>
+				<li title="Put a time limit on how long players have to choose their program cards. Use -1 for no time limit.">
+					<label for="maxProgrammingTime">Max programming time: </label>
+					<input type="number" id="maxProgrammingTime" value="-1" min="-1" />
+				</li>
+				<li title="After all teams but one have submitted their programs, the last team is given this many seconds to submit. Use -1 for no time limit.">
+					<label for="lastPlayerProgrammingTime">Last team programming time: </label>
+					<input type="number" id="lastPlayerProgrammingTime" value="30" min="-1" />
+				</li>
+				<li title="If checked, in team games, different robots from the team can touch each flag. Otherwise, a single robot must touch all the flags.">
+					<label for="teamSharesFlags">Team shares flags: </label>
+					<input type="checkbox" id="teamSharesFlags" />
+				</li>
+				<li title="Are robots allowed to power down to heal?">
+					<label for="canPowerDown">Can Power Down: </label>
+					<input type="checkbox" id="canPowerDown" checked="checked" />
+				</li>
+				<li title="Ending your turn on a tile with a wrench gives an option card instead of healing. The tile with a wrench and hammer gives two option cards and no healing.">
+					<label for="wrenchesGiveOptionCard">Wrenches give option cards: </label>
+					<input type="checkbox" id="wrenchesGiveOptionCard" />
+				</li>
+				<li title="In Capture-the-flag games, robots must capture the other team's flag and bring it back to their home board.">
+					<label for="captureTheFlag">Capture the flag: </label>
+					<input type="checkbox" id="captureTheFlag" />
+				</li>
+				<li title="Whenever a robot touches a flag, its team gains control of that flag. The first team to control all flags simultaneously wins.">
+					<label for="controlAllFlags">Must control all flags: </label>
+					<input type="checkbox" id="controlAllFlags" />
+				</li>
+				<li title="In SuperBot games, one player is the SuperBot. The SuperBot fully heals each turn, does double laser damage, and is the only robot that can touch flags. The player who kills the SuperBot becomes the new SuperBot. (See game rules for full details.) ">
+					<label for="superBot">SuperBot: </label>
+					<input type="checkbox" id="superBot" />
+				</li>
+			</ul>
+		</div>
 		<div class="toolbar">
 			<button class="createGame">Create new game</button>
 		</div>
@@ -23,13 +92,45 @@
 	<script src="/js/es6-promise.auto.min.js"></script>
 	<script src="/js/main.js"></script>
 	<script>
-		$('.createGame').click(function createNewGame() {
-			$.post('/create', function (gameId) {
-				var clientGame = new ClientGame(gameId);
-				clientGame.setSelfAsHost();
-				location = '/g/' + gameId;
+		(function () {
+			$('.createGame').click(function createNewGame() {
+				$.post('/create', function (gameId) {
+					var clientGame = new ClientGame(gameId);
+					clientGame.setSelfAsHost();
+					location = '/g/' + gameId;
+				});
 			});
-		});
+
+			var presets = GameSettings.getPresets();
+
+			for (var name in presets) {
+				$('#gamePresets').append($('<option>').text(name))
+			}
+
+			$('#gamePresets').val('Default');
+
+			$('#gamePresets').change(function () {
+				var val = $(this).val();
+				if (presets[val]) {
+					var settings = presets[val];
+
+					for (var property in settings) {
+						var el = document.getElementById(property);
+						if (el.type == 'checkbox')
+							el.checked = settings[property];
+						else
+							el.value = settings[property];
+					}
+				}
+			});
+
+			$('.gameSettings').on('input', 'input', switchToCusom);
+			$('.gameSettings').on('change', 'input[type=checkbox]', switchToCusom);
+
+			function switchToCusom() {
+				$('#gamePresets').val('Custom...');
+			}
+		})();
 	</script>
 </body>
 </html>
